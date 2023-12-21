@@ -110,6 +110,7 @@ def getNameColumn(nameFile):
     del nameCol[-1]
     #del nameColumn[:2]
     return nameCol
+
 def calcCutoffDistance(classesCoun, instancesMa, ordinateCoun, categoryTarge, categoryOpposit, vectorWeightsCur, argClasse):
     '''получает количество классов, количество экземпляров в самом объемном классе,
      количество ординат, номера целевой и противоположной категории и матрицу аргументов по классам
@@ -143,7 +144,8 @@ def calcCutoffDistance(classesCoun, instancesMa, ordinateCoun, categoryTarge, ca
         distanceCutOffMi = distanceCutOffPlus
     else:
         distanceCutOffMi = distanceCutOffMinus
-    return countCutOffSum, distanceCutOffMi
+    return countCutOffMinus, distanceCutOffMinus#countCutOffPlus, distanceCutOffPlus  #countCutOffSum, distanceCutOffMi
+
 def calcDescentDirection(classesCoun, instancesMa, ordinateCoun, categoryTarge, categoryOpposit, vectorWeightsCur, argClasse):
     '''получает количество классов, количество экземпляров в самом объемном классе,
      количество ординат, номера целевой и противоположной категории и матрицу аргументов по классам
