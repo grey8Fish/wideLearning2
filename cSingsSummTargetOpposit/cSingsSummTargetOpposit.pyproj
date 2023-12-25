@@ -22,7 +22,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="cSingsSummTargetOpposit.py" />
+    <Compile Include="CutoffCalculator.py" />
     <Compile Include="DataLoader.py" />
+    <Compile Include="DataProcessor.py" />
+    <Compile Include="DistanceCalculator.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
