@@ -1,7 +1,7 @@
 #import pandas as pan
 import numpy as np
 import csv
-import DataLoader
+from DataLoader import DataLoader
 
 def calcDistanceMinus(miNoTarget, categorySpecified, instanMax, ordCount, aClasses):
     '''получает минимум скалярного произведения, номер целевой категории, количество экземпляров
