@@ -1,4 +1,3 @@
-
 #import pandas as pan
 import numpy as np
 import csv
@@ -110,7 +109,6 @@ def getNameColumn(nameFile):
     del nameCol[-1]
     #del nameColumn[:2]
     return nameCol
-
 def calcCutoffDistance(classesCoun, instancesMa, ordinateCoun, categoryTarge, categoryOpposit, vectorWeightsCur, argClasse):
     '''получает количество классов, количество экземпляров в самом объемном классе,
      количество ординат, номера целевой и противоположной категории и матрицу аргументов по классам
@@ -144,8 +142,7 @@ def calcCutoffDistance(classesCoun, instancesMa, ordinateCoun, categoryTarge, ca
         distanceCutOffMi = distanceCutOffPlus
     else:
         distanceCutOffMi = distanceCutOffMinus
-    return countCutOffMinus, distanceCutOffMinus#countCutOffPlus, distanceCutOffPlus  #countCutOffSum, distanceCutOffMi
-
+    return countCutOffSum, distanceCutOffMi
 def calcDescentDirection(classesCoun, instancesMa, ordinateCoun, categoryTarge, categoryOpposit, vectorWeightsCur, argClasse):
     '''получает количество классов, количество экземпляров в самом объемном классе,
      количество ординат, номера целевой и противоположной категории и матрицу аргументов по классам
@@ -224,14 +221,22 @@ classesCount = 3    #количество классов
 instancesMax = 67   #количество экземпляров в самом объемном классе
 ordinateCount = 7   #количество ординат
 vectorWeightsCurr = np.zeros((ordinateCount+1), dtype=np.int32)
-vectorWeightsCurr[0] = 179
-vectorWeightsCurr[1] = 183
-vectorWeightsCurr[2] = 9
-vectorWeightsCurr[3] = 185
-vectorWeightsCurr[4] = 139
-vectorWeightsCurr[5] = -83# -77
+'''vectorWeightsCurr[0] = 179       #сумма 85 = 45 + 40
+vectorWeightsCurr[1] = 183          #сумма 83 = 43 + 40
+vectorWeightsCurr[2] = 9            #сумма 83 = 43 + 40
+vectorWeightsCurr[3] = 185          #сумма 82 = 45 + 37
+vectorWeightsCurr[4] = 139          #сумма 82 = 48 + 34
+vectorWeightsCurr[5] = -83# -77     #сумма 82 = 50 + 32
 vectorWeightsCurr[6] = 147#  -23
-vectorWeightsCurr[7] = 0 #376022
+vectorWeightsCurr[7] = 0 #376022'''
+vectorWeightsCurr[0] =	1568
+vectorWeightsCurr[1] =	1425
+vectorWeightsCurr[2] =	1448
+vectorWeightsCurr[3] =	940
+vectorWeightsCurr[4] =	1675
+vectorWeightsCurr[5] =	-2063
+vectorWeightsCurr[6] =	1221
+vectorWeightsCurr[7] = 0
 #vectorWeightsPrev = np.zeros((ordinateCount+1), dtype=np.int32)
 #0-й индекс поправка весов, 1-й количество отсеченных, 2-й расстояние до стенки
 deltaCutoffDistance = np.zeros((3, ordinateCount+1), dtype=np.int32)
@@ -331,19 +336,29 @@ while True:
                 distanceCutOffPrev = distanceCutOffCurr
         iDelta += 1
     iDelta = 1
-    maxCutoffDistance = deltaCutoffDistance[1][0]
-    maxCutoffIndex = ordinateCount
+    maxCutoff = deltaCutoffDistance[1][0]
+    maxCutoffIndex = 0
+    #minCutoffDistance = 0
     while iDelta < ordinateCount:#
-        if maxCutoffDistance < deltaCutoffDistance[1][iDelta]:
-            maxCutoffDistance = deltaCutoffDistance[1][iDelta]
+        if maxCutoff < deltaCutoffDistance[1][iDelta]:
+            maxCutoff = deltaCutoffDistance[1][iDelta]
             maxCutoffIndex = iDelta
         iDelta += 1
+    iDelta = 0
+    condCycle = 0
+    minCutoffDistance = abs(deltaCutoffDistance[0][maxCutoffIndex])
+    maxCutoffIndex = ordinateCount
+    while iDelta < ordinateCount:
+        condCycle += abs(deltaCutoffDistance[0][iDelta])
+        if maxCutoff == deltaCutoffDistance[1][iDelta]:
+            if minCutoffDistance >= abs(deltaCutoffDistance[0][iDelta]):
+                maxCutoffIndex = iDelta
+        iDelta += 1
     vectorWeightsCurr[maxCutoffIndex] += deltaCutoffDistance[0][maxCutoffIndex]
-    #пересчитать скалярные произведения
-    if maxCutoffIndex == ordinateCount:
+    if condCycle == 0:
         break
 calcCutoffDistance(classesCount, instancesMax, ordinateCount, categoryTarget, categoryOpposite, vectorWeightsCurr, argClasses)
 valueDoorstep = calcBiasDoorstep(classesCount, instancesMax, ordinateCount, categoryTarget, categoryOpposite, vectorWeightsCurr, argClasses)
-
+print(vectorWeightsCurr)
 iVector = 9
 #КОНЕЦ ПРОГРАММЫ
