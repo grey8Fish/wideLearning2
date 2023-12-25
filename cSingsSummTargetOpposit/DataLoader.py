@@ -1,75 +1,78 @@
-﻿
-#1. Пробный шаг надо сделать первым шагом
+﻿#1. Пробный шаг надо сделать первым шагом
 #2. Вставить проверку противоположной категории
+
 import csv
 import numpy as np
 
 class DataLoader:
     """
-    Класс DataLoader для загрузки и анализа данных из файлов CSV.
+    Класс DataLoader предназначен для загрузки и обработки данных из файлов CSV.
 
-    Атрибуты:
-        file_names (list of str): Список имен файлов для загрузки.
-        name_columns (list of str): Список названий столбцов, извлеченных из файлов CSV.
-        arg_classes (list of list of list): Вложенный список для хранения данных каждого класса.
+    Аттрибуты:
+        file_names (list): Список имен файлов для загрузки данных.
+        classes_count (int): Количество классов данных.
+        instances_max (int): Максимальное количество экземпляров данных в каждом классе.
+        ordinate_count (int): Количество ординат .
+        arg_classes (numpy.ndarray): Массив для хранения загруженных данных.
+        column_names (list): Список названий столбцов данных.
     """
 
-    def __init__(self, file_names):
+    def __init__(self, file_names, classes_count, instances_max, ordinate_count):
         """
-        Инициализирует DataLoader списком имен файлов.
+        Конструктор класса DataLoader.
 
         Аргументы:
-            file_names (list of str): Список имен файлов для загрузки.
+            file_names (list): Список имен файлов для загрузки данных.
+            classes_count (int): Количество классов данных.
+            instances_max (int): Максимальное количество экземпляров данных в каждом классе.
+            ordinate_count (int): Количество ординат (столбцов) в данных.
         """
         self.file_names = file_names
-        self.name_columns = []
-        self.arg_classes = []
+        self.classes_count = classes_count
+        self.instances_max = instances_max
+        self.ordinate_count = ordinate_count
+        # Инициализация массива для хранения данных
+        self.arg_classes = np.zeros((classes_count, instances_max, ordinate_count + 4), dtype=np.int32)
+        self.column_names = None
 
     def load_data(self):
         """
-        Загружает данные из указанных файлов CSV в атрибут arg_classes.
+        Загрузка и обработка данных из файлов.
         """
-        for index, file_name in enumerate(self.file_names):
-            self._read_file(file_name, index)
-
-    def _read_file(self, file_name, class_index):
-        """
-        Читает один файл CSV и добавляет его данные в список arg_classes.
-
-        Аргументы:
-            file_name (str): Имя файла для чтения.
-            class_index (int): Индекс, представляющий класс считываемых данных.
-        """
-        with open(file_name, encoding='utf-8') as file:
-            file_reader = csv.DictReader(file, delimiter=',')
-            
-            # Извлечь названия столбцов только из первого файла
-            if not self.name_columns:
-                self.name_columns = file_reader.fieldnames[:-1]  # Предполагается, что последний столбец не нужен
-
-            # Инициализировать arg_classes для этого индекса, если это еще не сделано
-            if len(self.arg_classes) <= class_index:
-                self.arg_classes.append([])
-
-            # Конвертировать строки в целые числа и добавить в arg_classes
-            for row in file_reader:
-                data_row = [int(row[col_name]) for col_name in self.name_columns]
-                self.arg_classes[class_index].append(data_row)
+        for i, file_name in enumerate(self.file_names):
+            with open(file_name, encoding='utf-8') as file:
+                csv_reader = csv.reader(file, delimiter=',')
+                for j, row in enumerate(csv_reader):
+                    if j < self.instances_max:
+                        processed_row = []
+                        for item in row:
+                            try:
+                                # Преобразование в целое число, если возможно
+                                processed_row.append(int(item))
+                            except ValueError:
+                                # Обработка нечисловых значений (например, пропуск или замена на 0)
+                                processed_row.append(0)
+                        # Сохранение обработанного ряда в массив
+                        self.arg_classes[i, j, :len(processed_row)] = processed_row
 
     def get_data(self):
         """
-        Возвращает загруженные данные.
+        Получение загруженных данных.
 
         Возвращает:
-            list of list of list: Загруженные данные из всех файлов CSV.
+            numpy.ndarray: Массив загруженных данных.
         """
         return self.arg_classes
 
     def get_column_names(self):
         """
-        Возвращает названия столбцов, извлеченных из файлов CSV.
+        Получение названий столбцов данных.
 
         Возвращает:
-            list of str: Названия столбцов.
+            list: Список названий столбцов.
         """
-        return self.name_columns
+        if not self.column_names and self.file_names:
+            with open(self.file_names[0], encoding='utf-8') as file:
+                csv_reader = csv.DictReader(file)
+                self.column_names = csv_reader.fieldnames
+        return self.column_names

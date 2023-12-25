@@ -216,12 +216,22 @@ def calcBiasDoorstep(classesCoun, instancesMa, ordinateCoun, categoryTarge, cate
 
 
 #НАЧАЛО ПРОГРАММЫ
-nameFileTrain0 = 'seed0_23_11_26.csv'
-nameFileTrain1 = 'seed1_23_11_26.csv'
-nameFileTrain2 = 'seed2_23_11_26.csv'
+#nameFileTrain0 = 'seed0_23_11_26.csv'
+#nameFileTrain1 = 'seed1_23_11_26.csv'
+#nameFileTrain2 = 'seed2_23_11_26.csv'
 classesCount = 3    #количество классов
 instancesMax = 67   #количество экземпляров в самом объемном классе
 ordinateCount = 7   #количество ординат
+
+
+#создание инстанса DataLoader
+file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']
+data_loader = DataLoader(file_names, classesCount, instancesMax, ordinateCount)
+data_loader.load_data()
+argClasses = data_loader.arg_classes
+nameColumn = data_loader.get_column_names()
+
+
 vectorWeightsCurr = np.zeros((ordinateCount+1), dtype=np.int32)
 '''vectorWeightsCurr[0] = 179       #сумма 85 = 45 + 40
 vectorWeightsCurr[1] = 183          #сумма 83 = 43 + 40
@@ -244,12 +254,12 @@ vectorWeightsCurr[7] = 0
 deltaCutoffDistance = np.zeros((3, ordinateCount+1), dtype=np.int32)
 #сначала Х-ы затем смещение=1, номер экземпляра, скалярное произведение
 #и признак отсеченности
-argClasses = np.zeros((classesCount, instancesMax, ordinateCount+4), dtype=np.int32)
+#argClasses = np.zeros((classesCount, instancesMax, ordinateCount+4), dtype=np.int32)
+#nameColumn = getNameColumn(nameFileTrain0)
 categoryTarget = 1
 categoryOpposite = 2
-nameColumn = getNameColumn(nameFileTrain0)
 #Чтение аргументов из файла одного из классов
-with open(nameFileTrain0, encoding='utf-8') as r_file:
+with open(file_names[0], encoding='utf-8') as r_file:
     # Создаем объект DictReader, указываем символ-разделитель ','
     file_reader = csv.DictReader(r_file, delimiter=',')
     iRow = 0
@@ -261,7 +271,7 @@ with open(nameFileTrain0, encoding='utf-8') as r_file:
             iVector += 1
         iRow += 1
 #Чтение аргументов из файла одного из классов
-with open(nameFileTrain1, encoding='utf-8') as r_file:
+with open(file_names[1], encoding='utf-8') as r_file:
     # Создаем объект DictReader, указываем символ-разделитель ','
     file_reader = csv.DictReader(r_file, delimiter=',')
     iRow = 0
@@ -273,7 +283,7 @@ with open(nameFileTrain1, encoding='utf-8') as r_file:
             iVector += 1
         iRow += 1
 #Чтение аргументов из файла одного из классов
-with open(nameFileTrain2, encoding='utf-8') as r_file:
+with open(file_names[2], encoding='utf-8') as r_file:
     # Создаем объект DictReader, указываем символ-разделитель ','
     file_reader = csv.DictReader(r_file, delimiter=',')
     iRow = 0
@@ -367,12 +377,12 @@ iVector = 9
 
 
 
-file_names = ['seed0_23_11_26.csv']
-data_loader = DataLoader(file_names)
-data_loader.load_data()
-
-arg_classes = data_loader.get_data()
-column_names = data_loader.get_column_names()
-
-print("Column Names:", column_names)
-print("Loaded Data:", arg_classes)
+#file_names = ['seed0_23_11_26.csv']
+#data_loader = DataLoader(file_names)
+#data_loader.load_data()
+#
+#arg_classes = data_loader.get_data()
+#column_names = data_loader.get_column_names()
+#
+#print("Column Names:", column_names)
+#print("Loaded Data:", arg_classes)
