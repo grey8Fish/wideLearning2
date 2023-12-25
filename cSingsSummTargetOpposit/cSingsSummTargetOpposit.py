@@ -259,6 +259,7 @@ deltaCutoffDistance = np.zeros((3, ordinateCount+1), dtype=np.int32)
 categoryTarget = 1
 categoryOpposite = 2
 #Чтение аргументов из файла одного из классов
+#Можно объединить в функцию
 with open(file_names[0], encoding='utf-8') as r_file:
     # Создаем объект DictReader, указываем символ-разделитель ','
     file_reader = csv.DictReader(r_file, delimiter=',')
