@@ -1,4 +1,7 @@
-﻿import csv
+﻿
+#1. Пробный шаг надо сделать первым шагом
+#2. Вставить проверку противоположной категории
+import csv
 import numpy as np
 
 class DataLoader:

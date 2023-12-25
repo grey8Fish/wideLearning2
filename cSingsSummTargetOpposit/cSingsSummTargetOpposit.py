@@ -1,6 +1,8 @@
 #import pandas as pan
 import numpy as np
 import csv
+import DataLoader
+
 def calcDistanceMinus(miNoTarget, categorySpecified, instanMax, ordCount, aClasses):
     '''получает минимум скалярного произведения, номер целевой категории, количество экземпляров
      в самом объемном классе, количество ординат и матрицу аргументов по классам
@@ -365,12 +367,12 @@ iVector = 9
 
 
 
-#file_names = ['seed0_23_11_26.csv']
-#data_loader = DataLoader(file_names)
-#data_loader.load_data()
-#
-#arg_classes = data_loader.get_data()
-#column_names = data_loader.get_column_names()
-#
-#print("Column Names:", column_names)
-#print("Loaded Data:", arg_classes)
+file_names = ['seed0_23_11_26.csv']
+data_loader = DataLoader(file_names)
+data_loader.load_data()
+
+arg_classes = data_loader.get_data()
+column_names = data_loader.get_column_names()
+
+print("Column Names:", column_names)
+print("Loaded Data:", arg_classes)
