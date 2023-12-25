@@ -362,3 +362,15 @@ valueDoorstep = calcBiasDoorstep(classesCount, instancesMax, ordinateCount, cate
 print(vectorWeightsCurr)
 iVector = 9
 #КОНЕЦ ПРОГРАММЫ
+
+
+
+#file_names = ['seed0_23_11_26.csv']
+#data_loader = DataLoader(file_names)
+#data_loader.load_data()
+#
+#arg_classes = data_loader.get_data()
+#column_names = data_loader.get_column_names()
+#
+#print("Column Names:", column_names)
+#print("Loaded Data:", arg_classes)
