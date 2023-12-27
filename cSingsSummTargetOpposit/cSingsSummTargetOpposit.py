@@ -241,13 +241,13 @@ vectorWeightsCurr[4] = 139          #сумма 82 = 48 + 34
 vectorWeightsCurr[5] = -83# -77     #сумма 82 = 50 + 32
 vectorWeightsCurr[6] = 147#  -23
 vectorWeightsCurr[7] = 0 #376022'''
-vectorWeightsCurr[0] =	1568
-vectorWeightsCurr[1] =	1425
-vectorWeightsCurr[2] =	1448
-vectorWeightsCurr[3] =	940
-vectorWeightsCurr[4] =	1675
-vectorWeightsCurr[5] =	-2063
-vectorWeightsCurr[6] =	1221
+vectorWeightsCurr[0] =	2492
+vectorWeightsCurr[1] =	2331
+vectorWeightsCurr[2] =	2012
+vectorWeightsCurr[3] =	729
+vectorWeightsCurr[4] =	2784
+vectorWeightsCurr[5] =	-2247
+vectorWeightsCurr[6] =	446
 vectorWeightsCurr[7] = 0
 #vectorWeightsPrev = np.zeros((ordinateCount+1), dtype=np.int32)
 #0-й индекс поправка весов, 1-й количество отсеченных, 2-й расстояние до стенки
