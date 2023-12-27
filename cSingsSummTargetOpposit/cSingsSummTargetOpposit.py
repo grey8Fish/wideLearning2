@@ -374,6 +374,7 @@ calcCutoffDistance(classesCount, instancesMax, ordinateCount, categoryTarget, ca
 valueDoorstep = calcBiasDoorstep(classesCount, instancesMax, ordinateCount, categoryTarget, categoryOpposite, vectorWeightsCurr, argClasses)
 print(vectorWeightsCurr)
 iVector = 9
+
 #КОНЕЦ ПРОГРАММЫ
 
 
