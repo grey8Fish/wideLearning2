@@ -211,9 +211,33 @@ def calcBiasDoorstep(classesCoun, instancesMa, ordinateCoun, categoryTarge, cate
     vectorWeightsCurr[ordinateCoun] = borderPM
     borderPM += borderTarget
     return borderPM
+def contrastingWeights(classesCoun, instancesMa, ordinateCoun, categoryTarge, categoryOpposit, vectorWeightsCurr, argClasse):
+    '''получает количество классов, количество экземпляров в самом объемном классе,
+    количество ординат, номера целевой и противоположной категории, вектор весов и матрицу аргументов по классам
+    уменьшает значения вектора весов без уменьшения количества отсеченных
+    возвращает бессмысленное значение'''
+    ww = calcCutoffDistance(classesCoun, instancesMa, ordinateCoun, categoryTarge, categoryOpposit, vectorWeightsCurr, argClasse)
+    countCutOffPrev = ww[0]
+    vectorWeightsPrev = vectorWeightsCurr.copy()
+    while True:
+        iCount = 0
+        while iCount < ordinateCoun:
+            vectorWeightsCurr[iCount] = vectorWeightsCurr[iCount] // 2
+            iCount += 1
+        ww = calcCutoffDistance(classesCoun, instancesMa, ordinateCoun, categoryTarge, categoryOpposit, vectorWeightsCurr, argClasse)
+        if ww[0] == countCutOffPrev:
+            #countCutOffPrev = ww[0]
+            vectorWeightsPrev = vectorWeightsCurr.copy()
+        else:
+            #vectorWeightsCurr = vectorWeightsPrev.copy()
+            break
+    iCount = 0
+    while iCount < ordinateCoun:
+       vectorWeightsCurr[iCount] =  vectorWeightsPrev[iCount]
+       iCount += 1
 
-
-
+#    vectorWeightsCurr = vectorWeightsPrev.copy()
+#    return countCutOffPrev
 
 #НАЧАЛО ПРОГРАММЫ
 #nameFileTrain0 = 'seed0_23_11_26.csv'
@@ -241,13 +265,13 @@ vectorWeightsCurr[4] = 139          #сумма 82 = 48 + 34
 vectorWeightsCurr[5] = -83# -77     #сумма 82 = 50 + 32
 vectorWeightsCurr[6] = 147#  -23
 vectorWeightsCurr[7] = 0 #376022'''
-vectorWeightsCurr[0] =	2492
-vectorWeightsCurr[1] =	2331
-vectorWeightsCurr[2] =	2012
-vectorWeightsCurr[3] =	729
-vectorWeightsCurr[4] =	2784
-vectorWeightsCurr[5] =	-2247
-vectorWeightsCurr[6] =	446
+vectorWeightsCurr[0] =	2524
+vectorWeightsCurr[1] =	2123
+vectorWeightsCurr[2] =	3872
+vectorWeightsCurr[3] =	936
+vectorWeightsCurr[4] =	3279
+vectorWeightsCurr[5] =	-58
+vectorWeightsCurr[6] =	902
 vectorWeightsCurr[7] = 0
 #vectorWeightsPrev = np.zeros((ordinateCount+1), dtype=np.int32)
 #0-й индекс поправка весов, 1-й количество отсеченных, 2-й расстояние до стенки
@@ -370,7 +394,8 @@ while True:
     vectorWeightsCurr[maxCutoffIndex] += deltaCutoffDistance[0][maxCutoffIndex]
     if condCycle == 0:
         break
-calcCutoffDistance(classesCount, instancesMax, ordinateCount, categoryTarget, categoryOpposite, vectorWeightsCurr, argClasses)
+#calcCutoffDistance(classesCount, instancesMax, ordinateCount, categoryTarget, categoryOpposite, vectorWeightsCurr, argClasses)
+contrastingWeights(classesCount, instancesMax, ordinateCount, categoryTarget, categoryOpposite, vectorWeightsCurr, argClasses)
 valueDoorstep = calcBiasDoorstep(classesCount, instancesMax, ordinateCount, categoryTarget, categoryOpposite, vectorWeightsCurr, argClasses)
 print(vectorWeightsCurr)
 iVector = 9
