@@ -2,6 +2,7 @@
 import numpy as np
 import csv
 from DataLoader import DataLoader
+#import cProfile
 
 def calcDistanceMinus(miNoTarget, categorySpecified, instanMax, ordCount, aClasses):
     '''получает минимум скалярного произведения, номер целевой категории, количество экземпляров
@@ -240,6 +241,12 @@ def contrastingWeights(classesCoun, instancesMa, ordinateCoun, categoryTarge, ca
 #    return countCutOffPrev
 
 #НАЧАЛО ПРОГРАММЫ
+
+#Нужно обернуть всё что ниже в #def main():
+#def main():
+
+
+
 #nameFileTrain0 = 'seed0_23_11_26.csv'
 #nameFileTrain1 = 'seed1_23_11_26.csv'
 #nameFileTrain2 = 'seed2_23_11_26.csv'
@@ -400,16 +407,9 @@ valueDoorstep = calcBiasDoorstep(classesCount, instancesMax, ordinateCount, cate
 print(vectorWeightsCurr)
 iVector = 9
 
+
+#Профайлер для Main
+#if __name__ == "__main__":
+#    cProfile.run('main()')
+
 #КОНЕЦ ПРОГРАММЫ
-
-
-
-#file_names = ['seed0_23_11_26.csv']
-#data_loader = DataLoader(file_names)
-#data_loader.load_data()
-#
-#arg_classes = data_loader.get_data()
-#column_names = data_loader.get_column_names()
-#
-#print("Column Names:", column_names)
-#print("Loaded Data:", arg_classes)
