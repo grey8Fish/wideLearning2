@@ -2,7 +2,8 @@
 import numpy as np
 import csv
 from DataLoader import DataLoader
-#import cProfile
+from DataProcessor import DataProcessor
+#import cProfile #профайлер
 
 def calcDistanceMinus(miNoTarget, categorySpecified, instanMax, ordCount, aClasses):
     '''получает минимум скалярного произведения, номер целевой категории, количество экземпляров
@@ -411,5 +412,16 @@ iVector = 9
 #Профайлер для Main
 #if __name__ == "__main__":
 #    cProfile.run('main()')
+
+# Пример использования класса DataProcessor
+#file_name = 'Sources/Seed_Data.csv'
+#dataset_example = DataProcessor(file_name, 'target')
+#class_datasets = dataset_example.split_by_class()
+
+# Вывод первых нескольких строк каждого подмножества данных
+#for class_value, dataset in class_datasets.items():
+#    print(f"Class {class_value}:")
+#    print(dataset.head(), "\n")
+
 
 #КОНЕЦ ПРОГРАММЫ
