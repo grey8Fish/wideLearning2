@@ -11,6 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>cSingsSummTargetOpposit</Name>
     <RootNamespace>cSingsSummTargetOpposit</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
