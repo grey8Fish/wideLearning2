@@ -1,7 +1,8 @@
-﻿import pandas as pd
+﻿import numpy as np
+import pandas as pd
 import os
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 class DataProcessor:
     def __init__(self, file_name, class_column, instance_column=None):
@@ -38,7 +39,23 @@ class DataProcessor:
             df[self.class_column] = df[self.class_column].map(class_mapping)
             # Сохранение словаря классов в отдельный файл
             pd.DataFrame.from_dict(class_mapping, orient='index').to_csv(os.path.join(self.output_folder, f'class_mapping_{self.file_name}'))
+        
+        # Замена строк "NA" на NaN
+        df = df.replace('NA', np.nan)
+        # Исключение строк с NaN из обработки
+        df = df.dropna()
+            
+        for column in df.columns:
+            if df[column].dtype == object and column != self.class_column:
+                # Создание словаря для сопоставления текстовых значений с числовыми индексами
+                column_mapping = {label: idx for idx, label in enumerate(df[column].unique())}
+                df[column] = df[column].map(column_mapping)
+        
+                # Сохранение словаря в отдельный файл
+                mapping_file_name = f"{column}_mapping_{self.file_name}"
+                pd.DataFrame.from_dict(column_mapping, orient='index').to_csv(os.path.join(self.output_folder, mapping_file_name))
 
+    
         # Определение колонок, которые не будут обрабатываться (колонка класса и, если указано, колонка экземпляра)
         columns_to_exclude = [self.class_column]
         if self.instance_column is not None:
@@ -90,9 +107,17 @@ class DataProcessor:
 
     @staticmethod
     def get_decimal_places(series):
-        # Определение максимального количества знаков после запятой в числовом столбце
-        return series.apply(lambda x: abs(Decimal(str(x)).as_tuple().exponent)).max()
+        def decimal_places(x):
+            try:
+                # Конвертируем в строку и затем в Decimal, если значение не NaN и не 'NA'
+                return abs(Decimal(str(x)).as_tuple().exponent) if pd.notna(x) and x != 'NA' else 0
+            except InvalidOperation:
+                return 0  # Возвращаем 0 для некорректных значений
+
+        # Применяем функцию к каждому элементу серии и возвращаем максимальное значение
+        return series.apply(decimal_places).max()
+
 
 # Использование класса
-processor = DataProcessor("Seed_Data.csv", "target")
+processor = DataProcessor("cirrhosis.csv", "Status")
 processor.process()
