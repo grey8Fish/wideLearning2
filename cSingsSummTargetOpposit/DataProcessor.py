@@ -32,13 +32,32 @@ class DataProcessor:
     def process(self):
         # Чтение файла
         df = self.read_file()
-    
+        
         # Шаг 1: Замена текстовых классов числовыми. Создание словаря для сопоставления текстовых классов с числовыми индексами.
-        if df[self.class_column].dtype == object:
-            class_mapping = {label: idx for idx, label in enumerate(df[self.class_column].unique())}
-            df[self.class_column] = df[self.class_column].map(class_mapping)
-            # Сохранение словаря классов в отдельный файл
-            pd.DataFrame.from_dict(class_mapping, orient='index').to_csv(os.path.join(self.output_folder, f'class_mapping_{self.file_name}'))
+        # Проверка, содержит ли колонка значения Yes/No или Y/N
+        for column in df.columns:
+            if df[column].dtype == object and column != self.class_column:
+                unique_values = set(df[column].dropna().unique())
+                yes_no_values = {'Y', 'N'}
+
+                # Проверка на наличие значений Y/N и максимум одного дополнительного значения
+                if yes_no_values.issubset(unique_values) and len(unique_values - yes_no_values) <= 1:
+                    # Определение маппинга для Yes/No значений
+                    yes_no_mapping = {val: (1 if val == 'Y' else -1 if val == 'N' else 0) for val in unique_values}
+                    yes_no_mapping['NA'] = 0
+                    df[column] = df[column].map(yes_no_mapping)
+
+                    # Сохранение словаря в отдельный файл
+                    mapping_file_name = f"{column}_yesno_mapping_{self.file_name}"
+                    pd.DataFrame.from_dict(yes_no_mapping, orient='index').to_csv(os.path.join(self.output_folder, mapping_file_name))
+                    continue  # Пропускаем оставшуюся часть цикла для этой колонки
+
+                else:   
+                    if df[self.class_column].dtype == object:
+                        class_mapping = {label: idx for idx, label in enumerate(df[self.class_column].unique())}
+                        df[self.class_column] = df[self.class_column].map(class_mapping)
+                        # Сохранение словаря классов в отдельный файл
+                        pd.DataFrame.from_dict(class_mapping, orient='index').to_csv(os.path.join(self.output_folder, f'class_mapping_{self.file_name}'))
         
         # Замена строк "NA" на NaN
         df = df.replace('NA', np.nan)
