@@ -1,7 +1,8 @@
-﻿import pandas as pd
+﻿import numpy as np
+import pandas as pd
 import os
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 class DataProcessor:
     def __init__(self, file_name, class_column, instance_column=None):
@@ -31,14 +32,49 @@ class DataProcessor:
     def process(self):
         # Чтение файла
         df = self.read_file()
-    
+        
         # Шаг 1: Замена текстовых классов числовыми. Создание словаря для сопоставления текстовых классов с числовыми индексами.
-        if df[self.class_column].dtype == object:
-            class_mapping = {label: idx for idx, label in enumerate(df[self.class_column].unique())}
-            df[self.class_column] = df[self.class_column].map(class_mapping)
-            # Сохранение словаря классов в отдельный файл
-            pd.DataFrame.from_dict(class_mapping, orient='index').to_csv(os.path.join(self.output_folder, f'class_mapping_{self.file_name}'))
+        # Проверка, содержит ли колонка значения Yes/No или Y/N
+        for column in df.columns:
+            if df[column].dtype == object and column != self.class_column:
+                unique_values = set(df[column].dropna().unique())
+                yes_no_values = {'Y', 'N'}
 
+                # Проверка на наличие значений Y/N и максимум одного дополнительного значения
+                if yes_no_values.issubset(unique_values) and len(unique_values - yes_no_values) <= 1:
+                    # Определение маппинга для Yes/No значений
+                    yes_no_mapping = {val: (1 if val == 'Y' else -1 if val == 'N' else 0) for val in unique_values}
+                    yes_no_mapping['NA'] = 0
+                    df[column] = df[column].map(yes_no_mapping)
+
+                    # Сохранение словаря в отдельный файл
+                    mapping_file_name = f"{column}_yesno_mapping_{self.file_name}"
+                    pd.DataFrame.from_dict(yes_no_mapping, orient='index').to_csv(os.path.join(self.output_folder, mapping_file_name))
+                    continue  # Пропускаем оставшуюся часть цикла для этой колонки
+
+                else:   
+                    if df[self.class_column].dtype == object:
+                        class_mapping = {label: idx for idx, label in enumerate(df[self.class_column].unique())}
+                        df[self.class_column] = df[self.class_column].map(class_mapping)
+                        # Сохранение словаря классов в отдельный файл
+                        pd.DataFrame.from_dict(class_mapping, orient='index').to_csv(os.path.join(self.output_folder, f'class_mapping_{self.file_name}'))
+        
+        # Замена строк "NA" на NaN
+        df = df.replace('NA', np.nan)
+        # Исключение строк с NaN из обработки
+        df = df.dropna()
+            
+        for column in df.columns:
+            if df[column].dtype == object and column != self.class_column:
+                # Создание словаря для сопоставления текстовых значений с числовыми индексами
+                column_mapping = {label: idx for idx, label in enumerate(df[column].unique())}
+                df[column] = df[column].map(column_mapping)
+        
+                # Сохранение словаря в отдельный файл
+                mapping_file_name = f"{column}_mapping_{self.file_name}"
+                pd.DataFrame.from_dict(column_mapping, orient='index').to_csv(os.path.join(self.output_folder, mapping_file_name))
+
+    
         # Определение колонок, которые не будут обрабатываться (колонка класса и, если указано, колонка экземпляра)
         columns_to_exclude = [self.class_column]
         if self.instance_column is not None:
@@ -82,17 +118,37 @@ class DataProcessor:
             self.instance_column = self.instance_column or "RowNum"
             # Добавление колонки с порядковыми номерами
             df[self.instance_column] = range(len(df))
+            
+        # Добавление колонки RowNumClass
+        df['RowNumClass'] = df.groupby(self.class_column).cumcount() + 1
+        df['CyclicRowNumClass'] = df.groupby(self.class_column).cumcount() % 3
 
         # Сохранение результата в новый файл с меткой времени
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         output_file_name = f"{os.path.splitext(self.file_name)[0]}_{timestamp}.csv"
         df.to_csv(os.path.join(self.output_folder, output_file_name), index=False)
+        
+        # Сохранение отдельных файлов по классу и CyclicRowNumClass
+        for class_val in df[self.class_column].unique():
+            for cyclic_val in df['CyclicRowNumClass'].unique():
+                subset_df = df[(df[self.class_column] == class_val) & (df['CyclicRowNumClass'] == cyclic_val)]
+                subset_file_name = f"{os.path.splitext(self.file_name)[0]}_{class_val}_{cyclic_val}_{timestamp}.csv"
+                subset_df.to_csv(os.path.join(self.output_folder, subset_file_name), index=False)
+
 
     @staticmethod
     def get_decimal_places(series):
-        # Определение максимального количества знаков после запятой в числовом столбце
-        return series.apply(lambda x: abs(Decimal(str(x)).as_tuple().exponent)).max()
+        def decimal_places(x):
+            try:
+                # Конвертируем в строку и затем в Decimal, если значение не NaN и не 'NA'
+                return abs(Decimal(str(x)).as_tuple().exponent) if pd.notna(x) and x != 'NA' else 0
+            except InvalidOperation:
+                return 0  # Возвращаем 0 для некорректных значений
+
+        # Применяем функцию к каждому элементу серии и возвращаем максимальное значение
+        return series.apply(decimal_places).max()
+
 
 # Использование класса
-processor = DataProcessor("Seed_Data.csv", "target")
+processor = DataProcessor("cirrhosis.csv", "Status")
 processor.process()
