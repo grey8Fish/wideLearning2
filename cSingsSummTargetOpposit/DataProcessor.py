@@ -118,11 +118,23 @@ class DataProcessor:
             self.instance_column = self.instance_column or "RowNum"
             # Добавление колонки с порядковыми номерами
             df[self.instance_column] = range(len(df))
+            
+        # Добавление колонки RowNumClass
+        df['RowNumClass'] = df.groupby(self.class_column).cumcount() + 1
+        df['CyclicRowNumClass'] = df.groupby(self.class_column).cumcount() % 3
 
         # Сохранение результата в новый файл с меткой времени
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         output_file_name = f"{os.path.splitext(self.file_name)[0]}_{timestamp}.csv"
         df.to_csv(os.path.join(self.output_folder, output_file_name), index=False)
+        
+        # Сохранение отдельных файлов по классу и CyclicRowNumClass
+        for class_val in df[self.class_column].unique():
+            for cyclic_val in df['CyclicRowNumClass'].unique():
+                subset_df = df[(df[self.class_column] == class_val) & (df['CyclicRowNumClass'] == cyclic_val)]
+                subset_file_name = f"{os.path.splitext(self.file_name)[0]}_{class_val}_{cyclic_val}_{timestamp}.csv"
+                subset_df.to_csv(os.path.join(self.output_folder, subset_file_name), index=False)
+
 
     @staticmethod
     def get_decimal_places(series):
