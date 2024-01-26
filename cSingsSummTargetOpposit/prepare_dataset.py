@@ -35,6 +35,9 @@ def get_decimal_places(series):
 def process(file_name, class_column, instance_column=None):
     source_folder = 'sources'
     output_folder = 'output'
+    
+    # Определение timestamp для именования файлов
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
     df = read_file(file_name, source_folder)
         
@@ -123,22 +126,26 @@ def process(file_name, class_column, instance_column=None):
         instance_column = instance_column or "RowNum"
         # Добавление колонки с порядковыми номерами
         df[instance_column] = range(len(df))
-        
-    # Добавление колонки RowNumClass
-    df['RowNumClass'] = df.groupby(class_column).cumcount() + 1
-    df['CyclicRowNumClass'] = df.groupby(class_column).cumcount() % 3
-    
+
     # Сохранение результата в новый файл с меткой времени
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     output_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}.csv"
     df.to_csv(os.path.join(output_folder, output_file_name), index=False)
     
-    # Сохранение отдельных файлов по классу и CyclicRowNumClass
-    for class_val in df[class_column].unique():
-        for cyclic_val in df['CyclicRowNumClass'].unique():
-            subset_df = df[(df[class_column] == class_val) & (df['CyclicRowNumClass'] == cyclic_val)]
-            subset_file_name = f"{os.path.splitext(file_name)[0]}_{class_val}_{cyclic_val}_{timestamp}.csv"
+    # Сохранение отдельных файлов по классу с разбиением на части
+    grouped_df = df.groupby(class_column)
+    for class_val, group in grouped_df:
+        n_rows = len(group)
+        rows_per_file = max(n_rows // 3, 1)  # Деление на 3 части, но не меньше одной строки на файл
+
+        for part in range(3):
+            start_row = part * rows_per_file
+            end_row = start_row + rows_per_file
+            subset_df = group.iloc[start_row:end_row]
+
+            # Генерация названия файла с учетом класса и части
+            subset_file_name = f"{os.path.splitext(file_name)[0]}_{class_val}_part{part}_{timestamp}.csv"
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
+
 
 
 if __name__ == "__main__":
