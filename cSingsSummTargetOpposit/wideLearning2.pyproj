@@ -27,7 +27,7 @@
     <Compile Include="models\CutoffCalculator.py" />
     <Compile Include="models\DataLoader.py" />
     <Compile Include="models\DistanceCalculator.py" />
-    <Compile Include="scripts\prepare_dataset.py" />
+    <Compile Include="prepare_dataset.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="docs\" />
