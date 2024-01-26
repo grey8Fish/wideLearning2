@@ -33,8 +33,8 @@ def get_decimal_places(series):
 
         
 def process(file_name, class_column, instance_column=None):
-    source_folder = 'Sources'
-    output_folder = 'Output'
+    source_folder = 'sources'
+    output_folder = 'output'
 
     df = read_file(file_name, source_folder)
         

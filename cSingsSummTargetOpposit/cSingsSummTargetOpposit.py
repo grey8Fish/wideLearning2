@@ -1,7 +1,7 @@
 #import pandas as pan
 import numpy as np
 import csv
-from DataLoader import DataLoader
+from models.DataLoader import DataLoader
 #import cProfile #профайлер
 
 def calcDistanceMinus(miNoTarget, categorySpecified, instanMax, ordCount, aClasses):
