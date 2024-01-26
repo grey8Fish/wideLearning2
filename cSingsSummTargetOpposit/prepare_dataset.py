@@ -127,6 +127,11 @@ def process(file_name, class_column, instance_column=None):
         # Добавление колонки с порядковыми номерами
         df[instance_column] = range(len(df))
 
+    # Перемещение class_column в самый правый столбец
+    class_column_data = df[class_column]
+    df = df.drop(columns=[class_column])
+    df[class_column] = class_column_data
+
     # Сохранение результата в новый файл с меткой времени
     output_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}.csv"
     df.to_csv(os.path.join(output_folder, output_file_name), index=False)
