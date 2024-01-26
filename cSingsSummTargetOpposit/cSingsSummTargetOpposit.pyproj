@@ -25,8 +25,18 @@
     <Compile Include="cSingsSummTargetOpposit.py" />
     <Compile Include="CutoffCalculator.py" />
     <Compile Include="DataLoader.py" />
-    <Compile Include="DataProcessor.py" />
     <Compile Include="DistanceCalculator.py" />
+    <Compile Include="prepare_dataset.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Docs\" />
+    <Folder Include="Output\" />
+    <Folder Include="Sources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Sources\cirrhosis.csv" />
+    <Content Include="Sources\seeds_dataset.txt" />
+    <Content Include="Sources\Seed_Data.csv" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
