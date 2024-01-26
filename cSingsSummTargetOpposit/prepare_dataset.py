@@ -39,6 +39,9 @@ def process(file_name, class_column, instance_column=None):
     # Определение timestamp для именования файлов
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
+    # Инициализация списка для сбора информации о колонках
+    columns_data = []
+
     df = read_file(file_name, source_folder)
         
     # Шаг 1: Замена текстовых классов числовыми. Создание словаря для сопоставления текстовых классов с числовыми индексами.
@@ -118,7 +121,15 @@ def process(file_name, class_column, instance_column=None):
             # Конвертация значений в целые числа
             df[column] = df[column].astype(int)
     
-            print(f"Column: {column}, Scale Factor: {scale_factor}")
+            # Сбор информации о колонке (для вывода, в расчётах не участвуеи)
+            unique_values = len(df[column].unique())
+            min_value = df[column].min()
+            max_value = df[column].max()
+            columns_data.append({'Column Name': column, 
+                                 'ScaleFactor': round(scale_factor), 
+                                 'UniqueCount': unique_values, 
+                                 'Min': min_value, 
+                                 'Max': max_value})
         
     # Проверка на наличие колонки с номером экземпляра
     if instance_column is None or instance_column not in df.columns:
@@ -150,7 +161,12 @@ def process(file_name, class_column, instance_column=None):
             # Генерация названия файла с учетом класса и части
             subset_file_name = f"{os.path.splitext(file_name)[0]}_{class_val}_part{part}_{timestamp}.csv"
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
+    
+    # Создание DataFrame из собранных данных по колонкам
+    columns_info = pd.DataFrame(columns_data)
 
+    # Вывод информации о колонках
+    print(columns_info.to_string(index=False))
 
 
 if __name__ == "__main__":
