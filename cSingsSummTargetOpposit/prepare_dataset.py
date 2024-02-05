@@ -102,7 +102,7 @@ def process(file_name, class_column, instance_column=None):
             df[column] -= df[column].min()
     
             # Шаг 4: Вычитание половины максимального значения из каждого элемента столбца
-            half_max = round(df[column].max() / 2)
+            half_max = df[column].max() / 2
             df[column] -= half_max
     
     # Поиск глобального максимума после шагов 2-4
@@ -113,7 +113,7 @@ def process(file_name, class_column, instance_column=None):
         if column not in columns_to_exclude:
             # Определение коэффициента масштабирования для текущей колонки
             scale_factor = global_max / df[column].max()
-            scale_factor = round(scale_factor, 0)  # Округление коэффициента масштабирования
+            scale_factor = scale_factor  # Округление коэффициента масштабирования
     
             # Применение масштабирования к значениям в колонке
             df[column] *= scale_factor
