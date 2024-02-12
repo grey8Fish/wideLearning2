@@ -38,6 +38,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="sources\cirrhosis.csv" />
+    <Content Include="Sources\Hotel Reservations.csv" />
+    <Content Include="Sources\loan_sanction_test.csv" />
+    <Content Include="Sources\milknew.csv" />
     <Content Include="sources\seeds_dataset.txt" />
     <Content Include="sources\Seed_Data.csv" />
   </ItemGroup>
