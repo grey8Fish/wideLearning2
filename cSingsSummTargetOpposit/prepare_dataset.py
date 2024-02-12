@@ -36,6 +36,10 @@ def process(file_name, class_column, instance_column=None):
     source_folder = 'sources'
     output_folder = 'output'
     
+    # Создание директории output, если она не существует
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    
     # Определение timestamp для именования файлов
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -170,7 +174,7 @@ def process(file_name, class_column, instance_column=None):
 
 
 if __name__ == "__main__":
-    file_name = "cirrhosis.csv"
-    class_column = "Status"
-    instance_column = "ID"
+    file_name = "Hotel Reservations.csv"
+    class_column = "booking_status"
+    instance_column = "Booking_ID"
     process(file_name, class_column, instance_column)
