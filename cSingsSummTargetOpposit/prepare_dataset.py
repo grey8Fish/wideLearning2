@@ -63,17 +63,23 @@ def process(file_name, class_column, instance_column=None):
                 df[column] = df[column].map(yes_no_mapping)
     
                 # Сохранение словаря в отдельный файл
-                mapping_file_name = f"{column}_yesno_mapping_{file_name}"
-                pd.DataFrame.from_dict(yes_no_mapping, orient='index').to_csv(os.path.join(output_folder, mapping_file_name))
+                mapping_file_name = f"mapping_{os.path.splitext(file_name)[0]}_{column}.csv"
+                mapping_df = pd.DataFrame(list(yes_no_mapping.items()), columns=['Value', 'Mapped'])
+                mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
                 continue  # Пропускаем оставшуюся часть цикла для этой колонки
     
-            else:   
-                if df[class_column].dtype == object:
-                    class_mapping = {label: idx for idx, label in enumerate(df[class_column].unique())}
-                    df[class_column] = df[class_column].map(class_mapping)
-                    # Сохранение словаря классов в отдельный файл
-                    pd.DataFrame.from_dict(class_mapping, orient='index').to_csv(os.path.join(output_folder, f'class_mapping_{file_name}'))
-    
+        else:
+            if df[class_column].dtype == object:
+                class_mapping = {label: idx for idx, label in enumerate(df[class_column].unique())}
+                df[class_column] = df[class_column].map(class_mapping)
+        
+                # Создание DataFrame из маппинга
+                class_mapping_df = pd.DataFrame(list(class_mapping.items()), columns=['Value', 'Mapped'])
+        
+                # Сохранение словаря классов в отдельный файл
+                mapping_file_name = f"mapping_{os.path.splitext(file_name)[0]}_{class_column}.csv"
+                class_mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
+                
     # Замена строк "NA" на NaN
     df = df.replace('NA', np.nan)
     # Исключение строк с NaN из обработки
@@ -84,11 +90,14 @@ def process(file_name, class_column, instance_column=None):
             # Создание словаря для сопоставления текстовых значений с числовыми индексами
             column_mapping = {label: idx for idx, label in enumerate(df[column].unique())}
             df[column] = df[column].map(column_mapping)
-    
-            # Сохранение словаря в отдельный файл
-            mapping_file_name = f"{column}_mapping_{file_name}"
-            pd.DataFrame.from_dict(column_mapping, orient='index').to_csv(os.path.join(output_folder, mapping_file_name))
-    
+        
+            # Создание DataFrame из маппинга
+            column_mapping_df = pd.DataFrame(list(column_mapping.items()), columns=['Value', 'Mapped'])
+        
+            # Сохранение словаря в отдельный файл с измененным форматированием названия
+            mapping_file_name = f"mapping_{os.path.splitext(file_name)[0]}_{column}.csv"
+            column_mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
+
     
     # Определение колонок, которые не будут обрабатываться (колонка класса и, если указано, колонка экземпляра)
     columns_to_exclude = [class_column]
