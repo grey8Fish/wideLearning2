@@ -1,4 +1,6 @@
 import numpy as np
+import csv
+from models.DataLoader import DataLoader
 
 class wideLearningSerialLayer:
 	def __init__(self, countClasses, maxInstance, sizeVector, nameFile):
@@ -20,12 +22,18 @@ class wideLearningSerialLayer:
 		self.countInstancesEachClassTraining = np.zeros(countClasses, dtype=int)
 		#количество экземпляров в каждом классе обучающей выборки
 		
-		#self.nameClasses
+		self.сolumnName = list()
+		#имена колонок
+
+		#self.classesName
 		#имена классов
 
-		self.inputsClassCorrection = np.zeros(countClasses, maxInstance, sizeVector, dtype=int)
+		#self.inputsClassCorrection = np.zeros(countClasses, maxInstance, sizeVector, dtype=int)
 		#входные экземпляры корректирующей выборки
 		
-		self.inputsClassTraining = np.zeros(countClasses, maxInstance, sizeVector, dtype=int)
+		#self.inputsClassTraining = np.zeros(countClasses, maxInstance, sizeVector, dtype=int)
 		#входные экземпляры обучающей выборки
 
+
+wlsl = wideLearningSerialLayer(3, 67, 123, 'fileNameTmp')
+qq = 9.5

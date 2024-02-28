@@ -2,8 +2,8 @@ import numpy as np
 
 class neuronInt3:
 	def __init__(self, sizeVector):
-		self.rightBorder = 0
-		self.leftBorder = 0
+		self.leftBorder = -7
+		self.rightBorder = 5
 		self.vectorWeights = np.zeros(sizeVector, dtype=int)
 	
 	def setBorders(self, leftB, rightB):
