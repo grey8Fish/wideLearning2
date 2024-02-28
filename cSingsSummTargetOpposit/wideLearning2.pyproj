@@ -27,6 +27,12 @@
     <Compile Include="models\CutoffCalculator.py" />
     <Compile Include="models\DataLoader.py" />
     <Compile Include="models\DistanceCalculator.py" />
+    <Compile Include="models\wideLearningSerialLayer.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\neuronInt3.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="prepare_dataset.py" />
   </ItemGroup>
   <ItemGroup>
