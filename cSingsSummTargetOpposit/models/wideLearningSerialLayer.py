@@ -25,10 +25,10 @@ class wideLearningSerialLayer:
 		#self.classesName
 		#имена классов
 
-		#self.inputsClassCorrection = np.zeros(countClasses, maxInstance, sizeVector, dtype=int)
+		self.inputsClassCorrection = np.zeros((countClasses, maxInstance, sizeVector), dtype=int)
 		#входные экземпляры корректирующей выборки
 		
-		#self.inputsClassTraining = np.zeros(countClasses, maxInstance, sizeVector, dtype=int)
+		self.inputsClassTraining = np.zeros((countClasses, maxInstance, sizeVector), dtype=int)
 		#входные экземпляры обучающей выборки
 
 	def setColumnName(self, columName):
@@ -37,8 +37,9 @@ class wideLearningSerialLayer:
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
-argClasses = data_loader.arg_classes
+#argClasses = data_loader.arg_classes
 #nameColumn = data_loader.get_column_names()
+qq = data_loader.instances_max
 
 wlsl = wideLearningSerialLayer(3, 67, 123, 'fileNameTmp')
 wlsl.setColumnName(data_loader.get_column_names())
