@@ -30,6 +30,7 @@ class DataLoader:
         self.ordinate_count = 0       # Количество столбцов в данных за исключением 'number' и 'target'
         self.arg_classes = None       # Массив для хранения обработанных данных
         self.column_names = None      # Список названий столбцов
+        self.target_column = None     # Имя самой правой колонки
         self._prepare_data()          # Вызов метода для подготовки и анализа данных
 
     def _prepare_data(self):
@@ -42,13 +43,15 @@ class DataLoader:
             with open(file_name, encoding='utf-8') as file:
                 csv_reader = csv.DictReader(file)
                 if not self.column_names:
-                    # Определение списка столбцов, исключая 'number' и 'target'
-                    self.column_names = [col for col in csv_reader.fieldnames if col not in ['number', 'target']]
+                    # Задание имени самой правой колонки
+                    self.target_column = csv_reader.fieldnames[-1]
+                    # Исключаем 'number' и самую правую колонку, имя которой хранится в self.target_column
+                    self.column_names = [col for col in csv_reader.fieldnames if col not in ['number', 'ID', self.target_column]]
                     self.ordinate_count = len(self.column_names)
 
                 for row in csv_reader:
                     # Подсчет экземпляров для каждого класса
-                    class_label = row['target']
+                    class_label = row[list(row.keys())[-1]]  # Получаем значение последней колонки подразумевая что там находится целевая колонка
                     if class_label not in class_instances:
                         class_instances[class_label] = 0
                     class_instances[class_label] += 1
