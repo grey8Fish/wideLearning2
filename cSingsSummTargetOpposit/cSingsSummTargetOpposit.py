@@ -260,8 +260,11 @@ file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 argClasses = data_loader.arg_classes
-nameColumn = data_loader.get_column_names()
 
+# Вывод ArgClasses
+data_loader.print_arg_classes()
+
+nameColumn = data_loader.get_column_names()
 
 vectorWeightsCurr = np.zeros((ordinateCount+1), dtype=np.int32)
 '''vectorWeightsCurr[0] = 179       #сумма 85 = 45 + 40

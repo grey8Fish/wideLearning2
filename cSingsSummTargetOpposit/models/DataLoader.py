@@ -3,6 +3,7 @@
 
 import csv
 import numpy as np
+import pandas as pd
 
 class DataLoader:
     """
@@ -106,3 +107,26 @@ class DataLoader:
                 csv_reader = csv.DictReader(file)
                 self.column_names = csv_reader.fieldnames
         return self.column_names
+
+
+    def print_arg_classes(self):
+        """
+        Вывод данных arg_classes в виде таблицы.
+        Точное соответствие количества столбцов входным данным без добавления лишних столбцов.
+        """
+        # Преобразуем данные из self.arg_classes в список списков для DataFrame
+        data_list = self.arg_classes.reshape(-1, self.arg_classes.shape[-1])
+        # Удаляем строки, полностью состоящие из нулей
+        data_list = data_list[~np.all(data_list == 0, axis=1)]
+
+        # Формируем полный список названий столбцов, включая специальные столбцы 'number' и 'target'
+        # Учитываем, что self.column_names уже содержит нужные названия столбцов без 'number' и 'target'
+        full_column_names = self.column_names + ['number', 'target']
+
+        # Создаем DataFrame только с необходимыми столбцами
+        # Ограничиваем количество столбцов в DataFrame до количества в full_column_names
+        df = pd.DataFrame(data_list[:, :len(full_column_names)], columns=full_column_names)
+
+        # Выводим DataFrame с учетом настроек отображения
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            print(df.to_string(index=False))
