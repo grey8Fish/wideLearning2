@@ -159,6 +159,19 @@ def process(file_name, class_column, instance_column=None):
     class_column_data = df[class_column]
     df = df.drop(columns=[class_column])
     df[class_column] = class_column_data
+    
+    # Проверка на наличие колонки с номером экземпляра
+    if instance_column is None or instance_column not in df.columns:
+        instance_column_data = range(1, len(df) + 1)  # Создание порядковых номеров, если колонка не была задана
+    else:
+        instance_column_data = df.pop(instance_column)  # Удаление и сохранение данных instance_column
+
+    # Удаление и сохранение данных class_column
+    class_column_data = df.pop(class_column)
+
+    # Добавление instance_column и class_column обратно в DataFrame в правильном порядке
+    df[instance_column] = instance_column_data
+    df[class_column] = class_column_data
 
     # Сохранение результата в новый файл с меткой времени
     output_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}.csv"
