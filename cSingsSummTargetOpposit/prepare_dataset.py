@@ -72,7 +72,7 @@ def process(file_name, class_column, instance_column=None):
             if df[class_column].dtype == object:
                 class_mapping = {label: idx for idx, label in enumerate(df[class_column].unique())}
                 df[class_column] = df[class_column].map(class_mapping)
-        
+                
                 # Создание DataFrame из маппинга
                 class_mapping_df = pd.DataFrame(list(class_mapping.items()), columns=['Value', 'Mapped'])
         
@@ -93,7 +93,11 @@ def process(file_name, class_column, instance_column=None):
         
             # Создание DataFrame из маппинга
             column_mapping_df = pd.DataFrame(list(column_mapping.items()), columns=['Value', 'Mapped'])
-        
+            
+            # Проверка, являются ли все значения в class_column целыми числами - необходимо из-за особенности вывода в pandas
+            if df[class_column].dropna().apply(lambda x: float(x).is_integer()).all():  # Проверка, являются ли все значения в class_column целыми числами
+                df[class_column] = df[class_column].astype(int)  # Преобразование к int, если условие выполняется
+
             # Сохранение словаря в отдельный файл с измененным форматированием названия
             mapping_file_name = f"mapping_{os.path.splitext(file_name)[0]}_{column}.csv"
             column_mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
@@ -155,6 +159,19 @@ def process(file_name, class_column, instance_column=None):
     class_column_data = df[class_column]
     df = df.drop(columns=[class_column])
     df[class_column] = class_column_data
+    
+    # Проверка на наличие колонки с номером экземпляра
+    if instance_column is None or instance_column not in df.columns:
+        instance_column_data = range(1, len(df) + 1)  # Создание порядковых номеров, если колонка не была задана
+    else:
+        instance_column_data = df.pop(instance_column)  # Удаление и сохранение данных instance_column
+
+    # Удаление и сохранение данных class_column
+    class_column_data = df.pop(class_column)
+
+    # Добавление instance_column и class_column обратно в DataFrame в правильном порядке
+    df[instance_column] = instance_column_data
+    df[class_column] = class_column_data
 
     # Сохранение результата в новый файл с меткой времени
     output_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}.csv"
@@ -183,7 +200,7 @@ def process(file_name, class_column, instance_column=None):
 
 
 if __name__ == "__main__":
-    file_name = "Hotel Reservations.csv"
-    class_column = "booking_status"
-    instance_column = "Booking_ID"
+    file_name = "cirrhosis.csv"
+    class_column = "Stage"
+    instance_column = "ID"
     process(file_name, class_column, instance_column)
