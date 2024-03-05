@@ -3,6 +3,7 @@
 
 import csv
 import numpy as np
+import pandas as pd
 
 class DataLoader:
     """
@@ -30,7 +31,10 @@ class DataLoader:
         self.ordinate_count = 0       # Количество столбцов в данных за исключением 'number' и 'target'
         self.arg_classes = None       # Массив для хранения обработанных данных
         self.column_names = None      # Список названий столбцов
+        self.target_column = None     # Имя самой правой колонки
         self._prepare_data()          # Вызов метода для подготовки и анализа данных
+        #self.class_names = []         # Инициализация атрибута для хранения названий классов
+        #self.class_instances = {}     # Добавление для хранения количества экземпляров каждого класса
 
     def _prepare_data(self):
         """
@@ -42,22 +46,27 @@ class DataLoader:
             with open(file_name, encoding='utf-8') as file:
                 csv_reader = csv.DictReader(file)
                 if not self.column_names:
-                    # Определение списка столбцов, исключая 'number' и 'target'
-                    self.column_names = [col for col in csv_reader.fieldnames if col not in ['number', 'target']]
+                    # Задание имени самой правой колонки
+                    self.target_column = csv_reader.fieldnames[-1]
+                    # Исключаем 'number' и самую правую колонку, имя которой хранится в self.target_column
+                    self.column_names = [col for col in csv_reader.fieldnames if col not in ['number', 'ID', self.target_column]]
                     self.ordinate_count = len(self.column_names)
 
                 for row in csv_reader:
-                    # Подсчет экземпляров для каждого класса
-                    class_label = row['target']
+                    class_label = row[self.target_column]
                     if class_label not in class_instances:
-                        class_instances[class_label] = 0
-                    class_instances[class_label] += 1
+                        class_instances[class_label] = 1
+                    else:
+                        class_instances[class_label] += 1
 
         # Расчет общего количества классов и максимального количества экземпляров
         self.classes_count = len(class_instances)
         self.instances_max = max(class_instances.values())
         # Инициализация массива для хранения данных
         self.arg_classes = np.zeros((self.classes_count, self.instances_max, self.ordinate_count + 4), dtype=np.int32)
+        self.class_names = list(class_instances.keys())
+        self.class_instances = class_instances 
+        
 
 
 
@@ -103,3 +112,45 @@ class DataLoader:
                 csv_reader = csv.DictReader(file)
                 self.column_names = csv_reader.fieldnames
         return self.column_names
+    
+    def print_column_names(self):
+        """
+        Print список названий столбцов данных.
+        """
+        column_names = self.get_column_names()
+        print("Column names:", column_names)
+
+
+    def print_arg_classes(self):
+        """
+        Вывод данных arg_classes в виде таблицы.
+        """
+        # Преобразуем данные из self.arg_classes в список списков для DataFrame
+        data_list = self.arg_classes.reshape(-1, self.arg_classes.shape[-1])
+        # Удаляем строки, полностью состоящие из нулей
+        data_list = data_list[~np.all(data_list == 0, axis=1)]
+
+        # Формируем полный список названий столбцов, включая специальные столбцы 'number' и 'target'
+        # Учитываем, что self.column_names уже содержит нужные названия столбцов без 'number' и 'target'
+        full_column_names = self.column_names + ['number', 'target']
+
+        # Создаем DataFrame только с необходимыми столбцами
+        # Ограничиваем количество столбцов в DataFrame до количества в full_column_names
+        df = pd.DataFrame(data_list[:, :len(full_column_names)], columns=full_column_names)
+
+        # Выводим DataFrame с учетом настроек отображения
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            print(df.to_string(index=False))
+
+    def get_class_names(self):
+        """
+        Возвращает список уникальных названий классов.
+        """
+        return self.class_names
+
+    def print_class_instances_table(self):
+        """
+        Выводит таблицу соответствия классов и количества их экземпляров.
+        """
+        df = pd.DataFrame(list(self.class_instances.items()), columns=['Class', 'Instances Count'])
+        print(df.to_string(index=False))
