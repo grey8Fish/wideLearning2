@@ -33,6 +33,8 @@ class DataLoader:
         self.column_names = None      # Список названий столбцов
         self.target_column = None     # Имя самой правой колонки
         self._prepare_data()          # Вызов метода для подготовки и анализа данных
+        #self.class_names = []         # Инициализация атрибута для хранения названий классов
+        #self.class_instances = {}     # Добавление для хранения количества экземпляров каждого класса
 
     def _prepare_data(self):
         """
@@ -51,17 +53,20 @@ class DataLoader:
                     self.ordinate_count = len(self.column_names)
 
                 for row in csv_reader:
-                    # Подсчет экземпляров для каждого класса
-                    class_label = row[list(row.keys())[-1]]  # Получаем значение последней колонки подразумевая что там находится целевая колонка
+                    class_label = row[self.target_column]
                     if class_label not in class_instances:
-                        class_instances[class_label] = 0
-                    class_instances[class_label] += 1
+                        class_instances[class_label] = 1
+                    else:
+                        class_instances[class_label] += 1
 
         # Расчет общего количества классов и максимального количества экземпляров
         self.classes_count = len(class_instances)
         self.instances_max = max(class_instances.values())
         # Инициализация массива для хранения данных
         self.arg_classes = np.zeros((self.classes_count, self.instances_max, self.ordinate_count + 4), dtype=np.int32)
+        self.class_names = list(class_instances.keys())
+        self.class_instances = class_instances 
+        
 
 
 
@@ -107,12 +112,18 @@ class DataLoader:
                 csv_reader = csv.DictReader(file)
                 self.column_names = csv_reader.fieldnames
         return self.column_names
+    
+    def print_column_names(self):
+        """
+        Print список названий столбцов данных.
+        """
+        column_names = self.get_column_names()
+        print("Column names:", column_names)
 
 
     def print_arg_classes(self):
         """
         Вывод данных arg_classes в виде таблицы.
-        Точное соответствие количества столбцов входным данным без добавления лишних столбцов.
         """
         # Преобразуем данные из self.arg_classes в список списков для DataFrame
         data_list = self.arg_classes.reshape(-1, self.arg_classes.shape[-1])
@@ -130,3 +141,16 @@ class DataLoader:
         # Выводим DataFrame с учетом настроек отображения
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             print(df.to_string(index=False))
+
+    def get_class_names(self):
+        """
+        Возвращает список уникальных названий классов.
+        """
+        return self.class_names
+
+    def print_class_instances_table(self):
+        """
+        Выводит таблицу соответствия классов и количества их экземпляров.
+        """
+        df = pd.DataFrame(list(self.class_instances.items()), columns=['Class', 'Instances Count'])
+        print(df.to_string(index=False))

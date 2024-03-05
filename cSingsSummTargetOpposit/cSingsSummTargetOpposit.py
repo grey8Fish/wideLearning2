@@ -261,8 +261,12 @@ data_loader = DataLoader(file_names)
 data_loader.load_data()
 argClasses = data_loader.arg_classes
 
+
 # Вывод ArgClasses
-data_loader.print_arg_classes()
+#data_loader.print_arg_classes()
+#print()
+#data_loader.print_class_instances_table()
+#data_loader.print_column_names()
 
 nameColumn = data_loader.get_column_names()
 
