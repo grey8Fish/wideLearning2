@@ -246,14 +246,12 @@ def contrastingWeights(classesCoun, instancesMa, ordinateCoun, categoryTarge, ca
 #def main():
 
 
-
 #nameFileTrain0 = 'seed0_23_11_26.csv'
 #nameFileTrain1 = 'seed1_23_11_26.csv'
 #nameFileTrain2 = 'seed2_23_11_26.csv'
-classesCount = 3    #количество классов
-instancesMax = 67   #количество экземпляров в самом объемном классе
-ordinateCount = 7   #количество ординат
-
+#classesCount = 3    #количество классов
+#instancesMax = 67   #количество экземпляров в самом объемном классе
+#ordinateCount = 7   #количество ординат
 
 #создание инстанса DataLoader
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']
@@ -261,10 +259,17 @@ data_loader = DataLoader(file_names)
 data_loader.load_data()
 argClasses = data_loader.arg_classes
 
+#nameFileTrain0 = 'seed0_23_11_26.csv'
+#nameFileTrain1 = 'seed1_23_11_26.csv'
+#nameFileTrain2 = 'seed2_23_11_26.csv'
+classesCount = data_loader.classes_count    #количество классов
+instancesMax = data_loader.instances_max    #количество экземпляров в самом объемном классе
+ordinateCount = data_loader.ordinate_count   #количество ординат
 
 # Вывод ArgClasses
-#data_loader.print_arg_classes()
-#print()
+data_loader.print_arg_classes()
+
+# Вывод статистик
 #data_loader.print_class_instances_table()
 #data_loader.print_column_names()
 
