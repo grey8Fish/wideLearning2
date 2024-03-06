@@ -60,27 +60,35 @@ def initialize_output_directory(output_folder='output'):
         os.makedirs(output_folder)
 
 
-def prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns=None, instance_column=None, ignored_columns=None):
+def prepare_df(df, excluded_columns=None, instance_column=None):
     """
-    Подготовка DataFrame к обработке: маппинг текстовых данных, удаление указанных колонок.
-
+    Подготовка DataFrame к обработке: удаление указанных колонок.
     :param df: Исходный DataFrame для обработки.
-    :param file_name: Имя файла, используемое для генерации имен файлов маппинга.
-    :param output_folder: Папка для сохранения файлов маппинга.
-    :param class_column: Название колонки, содержащей классы (целевая переменная).
     :param excluded_columns: Список колонок для исключения из DataFrame. По умолчанию None.
     :param instance_column: Название колонки с идентификаторами экземпляров. По умолчанию None.
-    :param ignored_columns: Список колонок, которые не будут обрабатываться. По умолчанию None.
-    :return: Обработанный DataFrame с маппингом текстовых данных и удаленными указанными колонками.
+    :return: DataFrame после удаления указанных колонок.
     """
-    # Исключение колонок, указанных в input:excluded_columns
     if excluded_columns is not None:
         df.drop(columns=excluded_columns, errors='ignore', inplace=True)
 
-    # Удаление instance_column из датафрейма
     if instance_column is not None:
-        df = df.drop(columns=[instance_column], errors='ignore')  
-        
+        df = df.drop(columns=[instance_column], errors='ignore')
+
+    # Замена строк "NA" на NaN и исключение строк с NaN
+    df = df.replace('NA', np.nan).dropna()
+
+    return df
+
+
+def map_df(df, file_name, output_folder, class_column):
+    """
+    Маппинг текстовых данных в DataFrame.
+    :param df: DataFrame для маппинга.
+    :param file_name: Имя файла, используемое для генерации имен файлов маппинга.
+    :param output_folder: Папка для сохранения файлов маппинга.
+    :param class_column: Название колонки, содержащей классы (целевая переменная).
+    :return: DataFrame с маппингом текстовых данных.
+    """
 
     # Шаг 1: Замена текстовых классов числовыми. Создание словаря для сопоставления текстовых классов с числовыми индексами.
     # Проверка, содержит ли колонка значения Yes/No или Y/N
@@ -113,11 +121,7 @@ def prepare_and_map_df(df, file_name, output_folder, class_column, excluded_colu
                 # Сохранение словаря классов в отдельный файл
                 mapping_file_name = f"mapping_{os.path.splitext(file_name)[0]}_{class_column}.csv"
                 class_mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
-
-
-    # Замена строк "NA" на NaN и исключение строк с NaN
-    df = df.replace('NA', np.nan).dropna()
-
+    
     # Обработка колонок для создания маппингов
     for column in df.columns:
         if df[column].dtype == object and column != class_column:
@@ -243,10 +247,11 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     Главная функция обработки файла: чтение, подготовка, обработка и сохранение данных. Функция выполняет следующие шаги:
     1. Инициализирует выходную директорию, очищая её или создавая новую, если необходимо.
     2. Читает данные из файла, опираясь на его формат.
-    3. Подготавливает данные: удаляет ненужные колонки, маппинг текстовых данных.
-    4. Выполняет математические операции над колонками: масштабирование и центрирование данных.
-    5. Сохраняет и переставляет колонки в DataFrame перед его сохранением в файл.
-    6. Выводит информацию о колонках после обработки.
+    3. Подготавливает данные: удаляет ненужные колонки.
+    4. Маппинг текстовых данных в числовые значения и сохранение словарей маппинга.
+    5. Выполняет математические операции над колонками: масштабирование и центрирование данных.
+    6. Сохраняет и переставляет колонки в DataFrame перед его сохранением в файл.
+    7. Выводит информацию о колонках после обработки.
 
     :param file_name: Имя файла для обработки.
     :param class_column: Название целевой колонки.
@@ -262,17 +267,20 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     # Шаг 2: Чтение файла
     df = read_file(file_name, source_folder)
     
-    # Шаг 3: Подготовка и маппинг DataFrame
-    df = prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns, instance_column, ignored_columns)
+    # Шаг 3: Подготовка DataFrame - удаляет ненужные колонки
+    df = prepare_df(df, excluded_columns, instance_column)
     
-    # Шаг 4: Выполнение математических операций над колонками
+    # Шаг 4: Маппинг текстовых колонок в DataFrame
+    df = map_df(df, file_name, output_folder, class_column)
+    
+    # Шаг 5: Выполнение математических операций над колонками
     columns_data = []  # Инициализация списка для сбора информации о колонках
     df = calculate_columns(df, class_column, ignored_columns, columns_data)
     
-    # Шаг 5: Сохранение и перестановка колонок перед сохранением
+    # Шаг 6: Сохранение и перестановка колонок перед сохранением
     save_and_rearrange_df(df, output_folder, file_name, class_column)
   
-    # Шаг 6: Вывод информации о колонках после обработки
+    # Шаг 7: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
     print(columns_info.to_string(index=False))
 
