@@ -240,7 +240,13 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column):
     
 def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
     """
-    Главная функция обработки файла: чтение, подготовка, обработка и сохранение данных.
+    Главная функция обработки файла: чтение, подготовка, обработка и сохранение данных. Функция выполняет следующие шаги:
+    1. Инициализирует выходную директорию, очищая её или создавая новую, если необходимо.
+    2. Читает данные из файла, опираясь на его формат.
+    3. Подготавливает данные: удаляет ненужные колонки, маппинг текстовых данных.
+    4. Выполняет математические операции над колонками: масштабирование и центрирование данных.
+    5. Сохраняет и переставляет колонки в DataFrame перед его сохранением в файл.
+    6. Выводит информацию о колонках после обработки.
 
     :param file_name: Имя файла для обработки.
     :param class_column: Название целевой колонки.
@@ -248,36 +254,33 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     :param excluded_columns: Список колонок для исключения из обработки. Опционально.
     :param ignored_columns: Список колонок, которые будут проигнорированы при обработке. Опционально.
     """
+    # Шаг 1: Инициализация выходной директории
     source_folder = 'sources'
     output_folder = 'output'
-    
     initialize_output_directory(output_folder)
 
-    # Инициализация списка для сбора информации о колонках
-    columns_data = []
-
+    # Шаг 2: Чтение файла
     df = read_file(file_name, source_folder)
     
-    # Вызов функции для подготовки и маппинга DataFrame
+    # Шаг 3: Подготовка и маппинг DataFrame
     df = prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns, instance_column, ignored_columns)
     
-    # Вызов функции для вычислений колонок
+    # Шаг 4: Выполнение математических операций над колонками
+    columns_data = []  # Инициализация списка для сбора информации о колонках
     df = calculate_columns(df, class_column, ignored_columns, columns_data)
     
-    # Вызов функции для сохранения и перестановки колонок перед сохранением
+    # Шаг 5: Сохранение и перестановка колонок перед сохранением
     save_and_rearrange_df(df, output_folder, file_name, class_column)
   
-    # Создание DataFrame из собранных данных по колонкам
+    # Шаг 6: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
-
-    # Вывод информации о колонках
     print(columns_info.to_string(index=False))
 
 
 if __name__ == "__main__":
-    file_name = "Hotel Reservations.csv"
-    class_column = "booking_status"  # Целевая колонка
-    instance_column = "Booking_ID"  # ID колонка (если есть)
+    file_name = "cirrhosis.csv"
+    class_column = "Stage"  # Целевая колонка
+    instance_column = "ID"  # ID колонка (если есть)
     #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле
     #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы
 
