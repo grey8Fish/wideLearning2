@@ -115,27 +115,9 @@ def prepare_and_map_df(df, file_name, output_folder, class_column, excluded_colu
     return df
 
 
-        
-def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
-    source_folder = 'sources'
-    output_folder = 'output'
-    
-    initialize_output_directory(output_folder)
-    
-    # Определение timestamp для именования файлов
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-
-    # Инициализация списка для сбора информации о колонках
-    columns_data = []
-
-    df = read_file(file_name, source_folder)
-    
-    # Вызов новой функции для подготовки и маппинга DataFrame
-    df = prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns, instance_column, ignored_columns)
-
-    # Определение колонок, которые не будут обрабатываться (колонка класса)
+def calculate_columns(df, class_column, ignored_columns, columns_data):
+    # Определение колонок, которые не будут обрабатываться
     columns_to_exclude = [class_column]
-    # Добавление ignored_columns к списку исключаемых из обработки, если таковые имеются
     if ignored_columns is not None:
         columns_to_exclude.extend(ignored_columns)
     
@@ -178,6 +160,30 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
                                  'UniqueCount': unique_values, 
                                  'Min': min_value, 
                                  'Max': max_value})
+            
+    return df
+
+
+        
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
+    source_folder = 'sources'
+    output_folder = 'output'
+    
+    initialize_output_directory(output_folder)
+    
+    # Определение timestamp для именования файлов
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    # Инициализация списка для сбора информации о колонках
+    columns_data = []
+
+    df = read_file(file_name, source_folder)
+    
+    # Вызов функции для подготовки и маппинга DataFrame
+    df = prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns, instance_column, ignored_columns)
+    
+    # Вызов функции для вычислений колонок
+    df = calculate_columns(df, class_column, ignored_columns, columns_data)
         
     # Добавление RowNum
     df['RowNum'] = np.arange(len(df))
