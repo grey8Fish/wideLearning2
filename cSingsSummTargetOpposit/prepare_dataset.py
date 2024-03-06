@@ -44,21 +44,11 @@ def initialize_output_directory(output_folder='output'):
     else:
         os.makedirs(output_folder)
 
-        
-def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
-    source_folder = 'sources'
-    output_folder = 'output'
-    
-    initialize_output_directory(output_folder)
-    
-    # Определение timestamp для именования файлов
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
-    # Инициализация списка для сбора информации о колонках
-    columns_data = []
-
-    df = read_file(file_name, source_folder)
-
+def prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns=None, instance_column=None, ignored_columns=None):
+    """
+    Обработка DataFrame: создание маппингов для текстовых данных и удаление указанных колонок.
+    """
     # Исключение колонок, указанных в input:excluded_columns
     if excluded_columns is not None:
         df.drop(columns=excluded_columns, errors='ignore', inplace=True)
@@ -66,7 +56,8 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     # Удаление instance_column из датафрейма
     if instance_column is not None:
         df = df.drop(columns=[instance_column], errors='ignore')  
-    
+        
+
     # Шаг 1: Замена текстовых классов числовыми. Создание словаря для сопоставления текстовых классов с числовыми индексами.
     # Проверка, содержит ли колонка значения Yes/No или Y/N
     for column in df.columns:
@@ -98,12 +89,12 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
                 # Сохранение словаря классов в отдельный файл
                 mapping_file_name = f"mapping_{os.path.splitext(file_name)[0]}_{class_column}.csv"
                 class_mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
-                
-    # Замена строк "NA" на NaN
-    df = df.replace('NA', np.nan)
-    # Исключение строк с NaN из обработки
-    df = df.dropna()
-        
+
+
+    # Замена строк "NA" на NaN и исключение строк с NaN
+    df = df.replace('NA', np.nan).dropna()
+
+    # Обработка колонок для создания маппингов
     for column in df.columns:
         if df[column].dtype == object and column != class_column:
             # Создание словаря для сопоставления текстовых значений с числовыми индексами
@@ -116,12 +107,32 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
             # Проверка, являются ли все значения в class_column целыми числами - необходимо из-за особенности вывода в pandas
             if df[class_column].dropna().apply(lambda x: float(x).is_integer()).all():  # Проверка, являются ли все значения в class_column целыми числами
                 df[class_column] = df[class_column].astype(int)  # Преобразование к int, если условие выполняется
-
+    
             # Сохранение словаря в отдельный файл с измененным форматированием названия
             mapping_file_name = f"mapping_{os.path.splitext(file_name)[0]}_{column}.csv"
             column_mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
 
+    return df
+
+
+        
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
+    source_folder = 'sources'
+    output_folder = 'output'
     
+    initialize_output_directory(output_folder)
+    
+    # Определение timestamp для именования файлов
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    # Инициализация списка для сбора информации о колонках
+    columns_data = []
+
+    df = read_file(file_name, source_folder)
+    
+    # Вызов новой функции для подготовки и маппинга DataFrame
+    df = prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns, instance_column, ignored_columns)
+
     # Определение колонок, которые не будут обрабатываться (колонка класса)
     columns_to_exclude = [class_column]
     # Добавление ignored_columns к списку исключаемых из обработки, если таковые имеются
@@ -202,9 +213,9 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 
 
 if __name__ == "__main__":
-    file_name = "milknew.csv"
-    class_column = "Grade"  # Целевая колонка
-    #instance_column = "Loan_ID"  # ID колонка (если есть)
+    file_name = "Hotel Reservations.csv"
+    class_column = "booking_status"  # Целевая колонка
+    instance_column = "Booking_ID"  # ID колонка (если есть)
     #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле
     #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы
 
