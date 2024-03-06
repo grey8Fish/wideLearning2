@@ -32,7 +32,7 @@ def get_decimal_places(series):
     return series.apply(decimal_places).max()
 
         
-def process(file_name, class_column, instance_column=None):
+def process(file_name, class_column, instance_column=None, excluded_columns=None):
     source_folder = 'sources'
     output_folder = 'output'
     
@@ -50,7 +50,11 @@ def process(file_name, class_column, instance_column=None):
     columns_data = []
 
     df = read_file(file_name, source_folder)
-    
+
+    # Исключение колонок, указанных в input:excluded_columns
+    if excluded_columns is not None:
+        df.drop(columns=excluded_columns, errors='ignore', inplace=True)
+
     # Удаление instance_column из датафрейма
     if instance_column is not None:
         df = df.drop(columns=[instance_column], errors='ignore')  
@@ -187,7 +191,21 @@ def process(file_name, class_column, instance_column=None):
 
 
 if __name__ == "__main__":
+    
+    # Меняем параметры только в этом болке
     file_name = "loan_sanction_test.csv"
-    class_column = "Married"
-    instance_column = "Loan_ID"
-    process(file_name, class_column, instance_column)
+    class_column = "Married" # Целевая колонка
+    instance_column = "Loan_ID" # ID колонка (если есть)
+    excluded_columns = []  # Список колонок, которые будут исключены из обработки (если есть)
+
+    # Создание словаря с аргументами для функции
+    process_args = {
+        "file_name": file_name,
+        "class_column": class_column,
+        # Добавляем instance_column и excluded_columns только если они определены и не пусты
+        **({"instance_column": "Loan_ID"} if 'instance_column' in locals() else {}),  # Условное добавление instance_column
+        **({"excluded_columns": excluded_columns} if excluded_columns else {}),  # Условное добавление excluded_columns
+    }
+
+    # Вызов функции с использованием распаковки словаря аргументов
+    process(**process_args)
