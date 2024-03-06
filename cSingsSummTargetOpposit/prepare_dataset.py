@@ -2,7 +2,7 @@
 import pandas as pd
 import os
 from datetime import datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 
 def read_file(file_name, source_folder):
@@ -36,8 +36,11 @@ def process(file_name, class_column, instance_column=None):
     source_folder = 'sources'
     output_folder = 'output'
     
-    # Создание директории output, если она не существует
-    if not os.path.exists(output_folder):
+    # Очистка директории output если она существует, создать папку если она не существует
+    if os.path.exists(output_folder):
+        for file in os.listdir(output_folder):
+            os.remove(os.path.join(output_folder, file))
+    else:
         os.makedirs(output_folder)
     
     # Определение timestamp для именования файлов
