@@ -22,6 +22,7 @@ def read_file(file_name, source_folder):
     else:
         raise ValueError(f"Unsupported file format: {file_extension}")
 
+
 def get_decimal_places(series):
     def decimal_places(x):
         try: # Конвертируем в строку и затем в Decimal, если значение не NaN и не 'NA'
@@ -31,17 +32,24 @@ def get_decimal_places(series):
     # Применяем функцию к каждому элементу серии и возвращаем максимальное значение
     return series.apply(decimal_places).max()
 
-        
-def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
-    source_folder = 'sources'
-    output_folder = 'output'
-    
-    # Очистка директории output если она существует, создать папку если она не существует
+
+def initialize_output_directory(output_folder='output'):
+    """
+    Инициализация и очистка выходной директории.
+    Очистка директории output если она существует, создать папку если она не существует
+    """
     if os.path.exists(output_folder):
         for file in os.listdir(output_folder):
             os.remove(os.path.join(output_folder, file))
     else:
         os.makedirs(output_folder)
+
+        
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
+    source_folder = 'sources'
+    output_folder = 'output'
+    
+    initialize_output_directory(output_folder)
     
     # Определение timestamp для именования файлов
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
