@@ -150,25 +150,6 @@ def process(file_name, class_column, instance_column=None):
                                  'Min': min_value, 
                                  'Max': max_value})
         
-    ## Проверка на наличие колонки с номером экземпляра
-    #if instance_column is None or instance_column not in df.columns:
-    #    # Задаём имя для новой колонки, если оно не было задано
-    #    instance_column = instance_column or "RowNum"
-    #    # Добавление колонки с порядковыми номерами
-    #    df[instance_column] = np.arange(0, len(df))
-    #
-    ## Перемещение class_column в самый правый столбец
-    #class_column_data = df[class_column]
-    #df = df.drop(columns=[class_column])
-    #df[class_column] = class_column_data
-    
-    # Проверка на наличие колонки с номером экземпляра
-    #if instance_column is None or instance_column not in df.columns:
-    #    instance_column_data = range(1, len(df) + 1)  # Создание порядковых номеров, если колонка не была задана
-    #else:
-    #    instance_column_data = df.pop(instance_column)  # Удаление и сохранение данных instance_column
-
-    
     # Добавление RowNum
     df['RowNum'] = np.arange(len(df))
 
