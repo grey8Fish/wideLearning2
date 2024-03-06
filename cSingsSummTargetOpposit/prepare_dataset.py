@@ -164,27 +164,18 @@ def calculate_columns(df, class_column, ignored_columns, columns_data):
     return df
 
 
-        
-def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
-    source_folder = 'sources'
-    output_folder = 'output'
-    
-    initialize_output_directory(output_folder)
-    
+def save_and_rearrange_df(df, output_folder, file_name, class_column):
+    """
+    Сохранение и перестановка колонок в DataFrame перед сохранением в файл.
+
+    :param df: DataFrame для сохранения.
+    :param output_folder: Папка для сохранения файла.
+    :param file_name: Исходное имя файла для создания имени выходного файла.
+    :param class_column: Название целевой колонки класса, которая будет перемещена в конец DataFrame.
+    """
     # Определение timestamp для именования файлов
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")    
 
-    # Инициализация списка для сбора информации о колонках
-    columns_data = []
-
-    df = read_file(file_name, source_folder)
-    
-    # Вызов функции для подготовки и маппинга DataFrame
-    df = prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns, instance_column, ignored_columns)
-    
-    # Вызов функции для вычислений колонок
-    df = calculate_columns(df, class_column, ignored_columns, columns_data)
-        
     # Добавление RowNum
     df['RowNum'] = np.arange(len(df))
 
@@ -210,7 +201,29 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
             # Генерация названия файла с учетом класса и части
             subset_file_name = f"{os.path.splitext(file_name)[0]}_{class_val}_part{part}_{timestamp}.csv"
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
+
+
     
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
+    source_folder = 'sources'
+    output_folder = 'output'
+    
+    initialize_output_directory(output_folder)
+
+    # Инициализация списка для сбора информации о колонках
+    columns_data = []
+
+    df = read_file(file_name, source_folder)
+    
+    # Вызов функции для подготовки и маппинга DataFrame
+    df = prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns, instance_column, ignored_columns)
+    
+    # Вызов функции для вычислений колонок
+    df = calculate_columns(df, class_column, ignored_columns, columns_data)
+    
+    # Вызов функции для сохранения и перестановки колонок перед сохранением
+    save_and_rearrange_df(df, output_folder, file_name, class_column)
+  
     # Создание DataFrame из собранных данных по колонкам
     columns_info = pd.DataFrame(columns_data)
 
