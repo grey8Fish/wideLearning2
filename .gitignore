@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # Output folder. Do not needs to be stored in Git
 wideLearning2/cSingsSummTargetOpposit/Output/
 ./cSingsSummTargetOpposit/Output/
+/cSingsSummTargetOpposit/Output
