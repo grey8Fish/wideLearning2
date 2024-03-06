@@ -2,10 +2,17 @@
 import pandas as pd
 import os
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 
 def read_file(file_name, source_folder):
+    """
+    Чтение данных из файла различных форматов и конвертация их в DataFrame.
+
+    :param file_name: Имя файла для чтения.
+    :param source_folder: Путь к директории, содержащей файл.
+    :return: DataFrame, загруженный из указанного файла.
+    """
     # Определение формата файла по расширению
     file_extension = os.path.splitext(file_name)[1].lower()
     file_path = os.path.join(source_folder, file_name)
@@ -24,6 +31,12 @@ def read_file(file_name, source_folder):
 
 
 def get_decimal_places(series):
+    """
+    Определение максимального количества знаков после запятой для числовых значений в колонке.
+
+    :param series: Колонка, для которой необходимо определить количество знаков после запятой.
+    :return: Максимальное количество знаков после запятой среди всех числовых значений.
+    """
     def decimal_places(x):
         try: # Конвертируем в строку и затем в Decimal, если значение не NaN и не 'NA'
             return abs(Decimal(str(x)).as_tuple().exponent) if pd.notna(x) and x != 'NA' else 0
@@ -35,9 +48,11 @@ def get_decimal_places(series):
 
 def initialize_output_directory(output_folder='output'):
     """
-    Инициализация и очистка выходной директории.
-    Очистка директории output если она существует, создать папку если она не существует
+    Инициализация выходной директории: очистка, если она существует, или создание новой.
+
+    :param output_folder: Название выходной директории. По умолчанию 'output'.
     """
+
     if os.path.exists(output_folder):
         for file in os.listdir(output_folder):
             os.remove(os.path.join(output_folder, file))
@@ -47,7 +62,16 @@ def initialize_output_directory(output_folder='output'):
 
 def prepare_and_map_df(df, file_name, output_folder, class_column, excluded_columns=None, instance_column=None, ignored_columns=None):
     """
-    Обработка DataFrame: создание маппингов для текстовых данных и удаление указанных колонок.
+    Подготовка DataFrame к обработке: маппинг текстовых данных, удаление указанных колонок.
+
+    :param df: Исходный DataFrame для обработки.
+    :param file_name: Имя файла, используемое для генерации имен файлов маппинга.
+    :param output_folder: Папка для сохранения файлов маппинга.
+    :param class_column: Название колонки, содержащей классы (целевая переменная).
+    :param excluded_columns: Список колонок для исключения из DataFrame. По умолчанию None.
+    :param instance_column: Название колонки с идентификаторами экземпляров. По умолчанию None.
+    :param ignored_columns: Список колонок, которые не будут обрабатываться. По умолчанию None.
+    :return: Обработанный DataFrame с маппингом текстовых данных и удаленными указанными колонками.
     """
     # Исключение колонок, указанных в input:excluded_columns
     if excluded_columns is not None:
@@ -116,6 +140,16 @@ def prepare_and_map_df(df, file_name, output_folder, class_column, excluded_colu
 
 
 def calculate_columns(df, class_column, ignored_columns, columns_data):
+    """
+    Выполнение математических операций над колонками DataFrame: масштабирование и центрирование данных.
+
+    :param df: DataFrame для обработки.
+    :param class_column: Название колонки класса, которая исключается из обработки.
+    :param ignored_columns: Список колонок, которые не подлежат обработке.
+    :param columns_data: Список для сбора информации о колонках после обработки.
+    :return: Обработанный DataFrame с масштабированными и центрированными данными.
+    """
+
     # Определение колонок, которые не будут обрабатываться
     columns_to_exclude = [class_column]
     if ignored_columns is not None:
@@ -205,6 +239,15 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column):
 
     
 def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
+    """
+    Главная функция обработки файла: чтение, подготовка, обработка и сохранение данных.
+
+    :param file_name: Имя файла для обработки.
+    :param class_column: Название целевой колонки.
+    :param instance_column: Название колонки с идентификаторами экземпляров. Опционально.
+    :param excluded_columns: Список колонок для исключения из обработки. Опционально.
+    :param ignored_columns: Список колонок, которые будут проигнорированы при обработке. Опционально.
+    """
     source_folder = 'sources'
     output_folder = 'output'
     
