@@ -32,7 +32,7 @@ def get_decimal_places(series):
     return series.apply(decimal_places).max()
 
         
-def process(file_name, class_column, instance_column=None, excluded_columns=None):
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
     source_folder = 'sources'
     output_folder = 'output'
     
@@ -114,8 +114,11 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
             column_mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
 
     
-    # Определение колонок, которые не будут обрабатываться (колонка класса и, если указано, колонка экземпляра)
+    # Определение колонок, которые не будут обрабатываться (колонка класса)
     columns_to_exclude = [class_column]
+    # Добавление ignored_columns к списку исключаемых из обработки, если таковые имеются
+    if ignored_columns is not None:
+        columns_to_exclude.extend(ignored_columns)
     
     # Шаги 2-4: Обработка каждой колонки данных, исключая колонки класса и экземпляра
     for column in df.columns:
