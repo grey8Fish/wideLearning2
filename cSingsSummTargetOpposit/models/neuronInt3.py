@@ -28,18 +28,19 @@ class neuronInt3:
 
 	def digit3activationFunction(self, vecInputs):
 		sMul = np.dot(self.vectorWeights, vecInputs)
-		if sMul < -1:
+		if sMul < self.leftBorder:
 			return(-1)
-		elif sMul > 1:
+		elif sMul > self.rightBorder:
 			return(1)
 		else:
 			return(0)
 
 inputs = np.array([2, 1, 0])
-weights = np.array([0, 11, 2])		
+weights = np.array([0, -5, 2])		
+
 nInt3 = neuronInt3(3)
 nInt3.setVectorWeights(weights)
 qq = nInt3.scalarMultiplication(inputs)
 nInt3.setBorders(-4, 7)
 ww = nInt3.digit3activationFunction(inputs)
-print(nInt3.getRightBorder())		
+print(nInt3.getRightBorder())

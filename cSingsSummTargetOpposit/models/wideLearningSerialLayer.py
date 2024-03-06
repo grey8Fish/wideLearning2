@@ -17,10 +17,10 @@ class wideLearningSerialLayer:
 	def setColumnName(self, columName):
 		self.columnName = columName #имена столбцов
 
-file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']
+file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
-#argClasses = data_loader.arg_classes
+argClasses = data_loader.arg_classes
 #nameColumn = data_loader.get_column_names()
 qq = data_loader.instances_max
 

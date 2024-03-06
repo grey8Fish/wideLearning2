@@ -183,7 +183,20 @@ def process(file_name, class_column, instance_column=None):
 
 
 if __name__ == "__main__":
-    file_name = "Hotel Reservations.csv"
+    file_name = "cirrhosis.csv"
+    class_column = "Stage"
+    instance_column = None#"ID"
+    '''file_name = "Seed_Data.csv"
+    class_column = "target"
+    instance_column = None#"ID"'''
+    '''file_name = "milknew.csv"
+    class_column = "Grade"
+    instance_column = None#"ID"'''
+    '''file_name = "loan_sanction_test.csv"
+    class_column = "Property_Area"
+    instance_column = None#"Loan_ID"'''
+    '''file_name = "HotelReservations.csv"
     class_column = "booking_status"
-    instance_column = "Booking_ID"
+    instance_column = None#"Booking_ID"'''
+
     process(file_name, class_column, instance_column)
