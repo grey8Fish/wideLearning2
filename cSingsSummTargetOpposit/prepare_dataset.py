@@ -194,19 +194,19 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 
 
 if __name__ == "__main__":
-    file_name = "loan_sanction_test.csv"
-    class_column = "Married"  # Целевая колонка
-    instance_column = "Loan_ID"  # ID колонка (если есть)
-    excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле
-    ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если есть) - данные колонки будут в выходном файле, но не будут преобразованы
+    file_name = "milknew.csv"
+    class_column = "Grade"  # Целевая колонка
+    #instance_column = "Loan_ID"  # ID колонка (если есть)
+    #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле
+    #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы
 
-    # Создание словаря с аргументами для функции
+    # Создание словаря с аргументами для функции и проверками на существование аргумента
     process_args = {
         "file_name": file_name,
         "class_column": class_column,
-        **({"instance_column": instance_column} if instance_column else {}),  # Условное добавление instance_column
-        **({"excluded_columns": excluded_columns} if excluded_columns else {}),  # Условное добавление excluded_columns
-        **({"ignored_columns": ignored_columns} if ignored_columns else {}),  # Условное добавление ignored_columns
+        **({"instance_column": locals().get('instance_column')} if 'instance_column' in locals() else {}),  # Условное добавление instance_column с проверкой на существование
+        **({"excluded_columns": locals().get('excluded_columns', [])}),  # Условное добавление excluded_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
+        **({"ignored_columns": locals().get('ignored_columns', [])}),  # Условное добавление ignored_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
     }
 
     # Вызов функции с использованием распаковки словаря аргументов
