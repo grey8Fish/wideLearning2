@@ -2,7 +2,7 @@
 import pandas as pd
 import os
 from datetime import datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 
 def read_file(file_name, source_folder):
@@ -22,6 +22,7 @@ def read_file(file_name, source_folder):
     else:
         raise ValueError(f"Unsupported file format: {file_extension}")
 
+
 def get_decimal_places(series):
     def decimal_places(x):
         try: # Конвертируем в строку и затем в Decimal, если значение не NaN и не 'NA'
@@ -31,14 +32,24 @@ def get_decimal_places(series):
     # Применяем функцию к каждому элементу серии и возвращаем максимальное значение
     return series.apply(decimal_places).max()
 
+
+def initialize_output_directory(output_folder='output'):
+    """
+    Инициализация и очистка выходной директории.
+    Очистка директории output если она существует, создать папку если она не существует
+    """
+    if os.path.exists(output_folder):
+        for file in os.listdir(output_folder):
+            os.remove(os.path.join(output_folder, file))
+    else:
+        os.makedirs(output_folder)
+
         
-def process(file_name, class_column, instance_column=None):
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
     source_folder = 'sources'
     output_folder = 'output'
     
-    # Создание директории output, если она не существует
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    initialize_output_directory(output_folder)
     
     # Определение timestamp для именования файлов
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -47,7 +58,15 @@ def process(file_name, class_column, instance_column=None):
     columns_data = []
 
     df = read_file(file_name, source_folder)
-        
+
+    # Исключение колонок, указанных в input:excluded_columns
+    if excluded_columns is not None:
+        df.drop(columns=excluded_columns, errors='ignore', inplace=True)
+
+    # Удаление instance_column из датафрейма
+    if instance_column is not None:
+        df = df.drop(columns=[instance_column], errors='ignore')  
+    
     # Шаг 1: Замена текстовых классов числовыми. Создание словаря для сопоставления текстовых классов с числовыми индексами.
     # Проверка, содержит ли колонка значения Yes/No или Y/N
     for column in df.columns:
@@ -103,10 +122,11 @@ def process(file_name, class_column, instance_column=None):
             column_mapping_df.to_csv(os.path.join(output_folder, mapping_file_name), index=False)
 
     
-    # Определение колонок, которые не будут обрабатываться (колонка класса и, если указано, колонка экземпляра)
+    # Определение колонок, которые не будут обрабатываться (колонка класса)
     columns_to_exclude = [class_column]
-    if instance_column is not None:
-        columns_to_exclude.append(instance_column)
+    # Добавление ignored_columns к списку исключаемых из обработки, если таковые имеются
+    if ignored_columns is not None:
+        columns_to_exclude.extend(ignored_columns)
     
     # Шаги 2-4: Обработка каждой колонки данных, исключая колонки класса и экземпляра
     for column in df.columns:
@@ -148,29 +168,11 @@ def process(file_name, class_column, instance_column=None):
                                  'Min': min_value, 
                                  'Max': max_value})
         
-    # Проверка на наличие колонки с номером экземпляра
-    if instance_column is None or instance_column not in df.columns:
-        # Задаём имя для новой колонки, если оно не было задано
-        instance_column = instance_column or "RowNum"
-        # Добавление колонки с порядковыми номерами
-        df[instance_column] = np.arange(0, len(df))
+    # Добавление RowNum
+    df['RowNum'] = np.arange(len(df))
 
-    # Перемещение class_column в самый правый столбец
-    class_column_data = df[class_column]
-    df = df.drop(columns=[class_column])
-    df[class_column] = class_column_data
-    
-    # Проверка на наличие колонки с номером экземпляра
-    if instance_column is None or instance_column not in df.columns:
-        instance_column_data = range(1, len(df) + 1)  # Создание порядковых номеров, если колонка не была задана
-    else:
-        instance_column_data = df.pop(instance_column)  # Удаление и сохранение данных instance_column
-
-    # Удаление и сохранение данных class_column
+    # Перемещение class_column в самый правый столбец - сохранение и удаление class_column из DataFrame
     class_column_data = df.pop(class_column)
-
-    # Добавление instance_column и class_column обратно в DataFrame в правильном порядке
-    df[instance_column] = instance_column_data
     df[class_column] = class_column_data
     
     # Сохранение результата в новый файл с меткой времени
@@ -200,7 +202,20 @@ def process(file_name, class_column, instance_column=None):
 
 
 if __name__ == "__main__":
-    file_name = "cirrhosis.csv"
-    class_column = "Stage"
-    instance_column = "ID"
-    process(file_name, class_column, instance_column)
+    file_name = "milknew.csv"
+    class_column = "Grade"  # Целевая колонка
+    #instance_column = "Loan_ID"  # ID колонка (если есть)
+    #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле
+    #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы
+
+    # Создание словаря с аргументами для функции и проверками на существование аргумента
+    process_args = {
+        "file_name": file_name,
+        "class_column": class_column,
+        **({"instance_column": locals().get('instance_column')} if 'instance_column' in locals() else {}),  # Условное добавление instance_column с проверкой на существование
+        **({"excluded_columns": locals().get('excluded_columns', [])}),  # Условное добавление excluded_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
+        **({"ignored_columns": locals().get('ignored_columns', [])}),  # Условное добавление ignored_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
+    }
+
+    # Вызов функции с использованием распаковки словаря аргументов
+    process(**process_args)
