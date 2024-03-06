@@ -237,6 +237,32 @@ def contrastingWeights(classesCoun, instancesMa, ordinateCoun, categoryTarge, ca
        vectorWeightsCurr[iCount] =  vectorWeightsPrev[iCount]
        iCount += 1
 
+
+def load_arg_classes_from_files(file_names, argClasses, nameColumn):
+    """
+    Загружает данные из CSV-файлов в массив argClasses.
+
+    Args:
+        file_names (list of str): Список имен файлов для чтения.
+        argClasses (np.array): Массив для заполнения данными из файлов.
+            Предполагается, что он имеет подходящий размер для хранения всех данных.
+        nameColumn (list of str): Список названий столбцов, которые необходимо считать из файлов.
+
+    Returns:
+        None. Функция модифицирует массив argClasses напрямую.
+    """
+    # Проходим по каждому имени файла и его индексу в списке file_names
+    for class_index, file_name in enumerate(file_names):
+        with open(file_name, encoding='utf-8') as r_file:
+            file_reader = csv.DictReader(r_file, delimiter=',')
+            for iRow, row in enumerate(file_reader):
+                # Заполняем соответствующую строку argClasses для текущего класса
+                for iVector, iColumn in enumerate(nameColumn):
+                    # Преобразуем значение к нужному типу, если это необходимо, и сохраняем в массиве
+                    argClasses[class_index][iRow][iVector] = row[iColumn]
+    return argClasses
+
+
 #    vectorWeightsCurr = vectorWeightsPrev.copy()
 #    return countCutOffPrev
 
@@ -267,7 +293,7 @@ instancesMax = data_loader.instances_max    #количество экземпл
 ordinateCount = data_loader.ordinate_count   #количество ординат
 
 # Вывод ArgClasses
-data_loader.print_arg_classes()
+#data_loader.print_arg_classes()
 
 # Вывод статистик
 #data_loader.print_class_instances_table()
@@ -301,43 +327,48 @@ deltaCutoffDistance = np.zeros((3, ordinateCount+1), dtype=np.int32)
 #nameColumn = getNameColumn(nameFileTrain0)
 categoryTarget = 1
 categoryOpposite = 2
+
+
 #Чтение аргументов из файла одного из классов
 #Можно объединить в функцию
-with open(file_names[0], encoding='utf-8') as r_file:
-    # Создаем объект DictReader, указываем символ-разделитель ','
-    file_reader = csv.DictReader(r_file, delimiter=',')
-    iRow = 0
-    for row in file_reader:
-        iVector = 0
-        for iColumn in nameColumn:
-            qq = row[iColumn]
-            argClasses[0][iRow][iVector] = qq
-            iVector += 1
-        iRow += 1
-#Чтение аргументов из файла одного из классов
-with open(file_names[1], encoding='utf-8') as r_file:
-    # Создаем объект DictReader, указываем символ-разделитель ','
-    file_reader = csv.DictReader(r_file, delimiter=',')
-    iRow = 0
-    for row in file_reader:
-        iVector = 0
-        for iColumn in nameColumn:
-            qq = row[iColumn]
-            argClasses[1][iRow][iVector] = qq
-            iVector += 1
-        iRow += 1
-#Чтение аргументов из файла одного из классов
-with open(file_names[2], encoding='utf-8') as r_file:
-    # Создаем объект DictReader, указываем символ-разделитель ','
-    file_reader = csv.DictReader(r_file, delimiter=',')
-    iRow = 0
-    for row in file_reader:
-        iVector = 0
-        for iColumn in nameColumn:
-            qq = row[iColumn]
-            argClasses[2][iRow][iVector] = qq
-            iVector += 1
-        iRow += 1
+#with open(file_names[0], encoding='utf-8') as r_file:
+#    # Создаем объект DictReader, указываем символ-разделитель ','
+#    file_reader = csv.DictReader(r_file, delimiter=',')
+#    iRow = 0
+#    for row in file_reader:
+#        iVector = 0
+#        for iColumn in nameColumn:
+#            qq = row[iColumn]
+#            argClasses[0][iRow][iVector] = qq
+#            iVector += 1
+#        iRow += 1
+##Чтение аргументов из файла одного из классов
+#with open(file_names[1], encoding='utf-8') as r_file:
+#    # Создаем объект DictReader, указываем символ-разделитель ','
+#    file_reader = csv.DictReader(r_file, delimiter=',')
+#    iRow = 0
+#    for row in file_reader:
+#        iVector = 0
+#        for iColumn in nameColumn:
+#            qq = row[iColumn]
+#            argClasses[1][iRow][iVector] = qq
+#            iVector += 1
+#        iRow += 1
+##Чтение аргументов из файла одного из классов
+#with open(file_names[2], encoding='utf-8') as r_file:
+#    # Создаем объект DictReader, указываем символ-разделитель ','
+#    file_reader = csv.DictReader(r_file, delimiter=',')
+#    iRow = 0
+#    for row in file_reader:
+#        iVector = 0
+#        for iColumn in nameColumn:
+#            qq = row[iColumn]
+#            argClasses[2][iRow][iVector] = qq
+#            iVector += 1
+#        iRow += 1
+argClasses = load_arg_classes_from_files(file_names, argClasses, nameColumn)
+
+
 #Сдвинуть номер экземпляра вправо на один индекс
 #Записать единицу для скалярного умножения
 iMatrix = 0
