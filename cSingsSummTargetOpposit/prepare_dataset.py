@@ -153,7 +153,7 @@ def process(file_name, class_column, instance_column=None):
         # Задаём имя для новой колонки, если оно не было задано
         instance_column = instance_column or "RowNum"
         # Добавление колонки с порядковыми номерами
-        df[instance_column] = range(len(df))
+        df[instance_column] = np.arange(0, len(df))
 
     # Перемещение class_column в самый правый столбец
     class_column_data = df[class_column]
@@ -172,7 +172,7 @@ def process(file_name, class_column, instance_column=None):
     # Добавление instance_column и class_column обратно в DataFrame в правильном порядке
     df[instance_column] = instance_column_data
     df[class_column] = class_column_data
-
+    
     # Сохранение результата в новый файл с меткой времени
     output_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}.csv"
     df.to_csv(os.path.join(output_folder, output_file_name), index=False)
