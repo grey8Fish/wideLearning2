@@ -238,29 +238,29 @@ def contrastingWeights(classesCoun, instancesMa, ordinateCoun, categoryTarge, ca
        iCount += 1
 
 
-def load_arg_classes_from_files(file_names, argClasses, nameColumn):
-    """
-    Загружает данные из CSV-файлов в массив argClasses.
-
-    Args:
-        file_names (list of str): Список имен файлов для чтения.
-        argClasses (np.array): Массив для заполнения данными из файлов.
-            Предполагается, что он имеет подходящий размер для хранения всех данных.
-        nameColumn (list of str): Список названий столбцов, которые необходимо считать из файлов.
-
-    Returns:
-        None. Функция модифицирует массив argClasses напрямую.
-    """
-    # Проходим по каждому имени файла и его индексу в списке file_names
-    for class_index, file_name in enumerate(file_names):
-        with open(file_name, encoding='utf-8') as r_file:
-            file_reader = csv.DictReader(r_file, delimiter=',')
-            for iRow, row in enumerate(file_reader):
-                # Заполняем соответствующую строку argClasses для текущего класса
-                for iVector, iColumn in enumerate(nameColumn):
-                    # Преобразуем значение к нужному типу, если это необходимо, и сохраняем в массиве
-                    argClasses[class_index][iRow][iVector] = row[iColumn]
-    return argClasses
+#def load_arg_classes_from_files(file_names, argClasses, nameColumn):
+#    """
+#    Загружает данные из CSV-файлов в массив argClasses.
+#
+#    Args:
+#        file_names (list of str): Список имен файлов для чтения.
+#        argClasses (np.array): Массив для заполнения данными из файлов.
+#            Предполагается, что он имеет подходящий размер для хранения всех данных.
+#        nameColumn (list of str): Список названий столбцов, которые необходимо считать из файлов.
+#
+#    Returns:
+#        None. Функция модифицирует массив argClasses напрямую.
+#    """
+#    # Проходим по каждому имени файла и его индексу в списке file_names
+#    for class_index, file_name in enumerate(file_names):
+#        with open(file_name, encoding='utf-8') as r_file:
+#            file_reader = csv.DictReader(r_file, delimiter=',')
+#            for iRow, row in enumerate(file_reader):
+#                # Заполняем соответствующую строку argClasses для текущего класса
+#                for iVector, iColumn in enumerate(nameColumn):
+#                    # Преобразуем значение к нужному типу, если это необходимо, и сохраняем в массиве
+#                    argClasses[class_index][iRow][iVector] = row[iColumn]
+#    return argClasses
 
 
 #    vectorWeightsCurr = vectorWeightsPrev.copy()
@@ -370,7 +370,7 @@ categoryOpposite = 2
 #            argClasses[2][iRow][iVector] = qq
 #            iVector += 1
 #        iRow += 1
-argClasses = load_arg_classes_from_files(file_names, argClasses, nameColumn)
+#argClasses = load_arg_classes_from_files(file_names, argClasses, nameColumn)
 
 
 #Сдвинуть номер экземпляра вправо на один индекс
