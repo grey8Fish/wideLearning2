@@ -71,9 +71,6 @@ class DataLoader:
         self.class_instances = class_instances 
         
 
-
-
-
     def load_data(self):
         """
         Загрузка и обработка данных из файлов.
@@ -94,6 +91,7 @@ class DataLoader:
                         # Сохранение обработанного ряда в массив
                         self.arg_classes[i, j, :len(processed_row)] = processed_row
 
+
     def get_data(self):
         """
         Получение загруженных данных.
@@ -102,6 +100,7 @@ class DataLoader:
             numpy.ndarray: Массив загруженных данных.
         """
         return self.arg_classes
+
 
     def get_column_names(self):
         """
@@ -116,6 +115,7 @@ class DataLoader:
                 self.column_names = csv_reader.fieldnames
         return self.column_names
     
+
     def print_column_names(self):
         """
         Print список названий столбцов данных.
@@ -145,11 +145,13 @@ class DataLoader:
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             print(df.to_string(index=False))
 
+
     def get_class_names(self):
         """
         Возвращает список уникальных названий классов.
         """
         return self.class_names
+
 
     def print_class_instances_table(self):
         """
@@ -157,3 +159,18 @@ class DataLoader:
         """
         df = pd.DataFrame(list(self.class_instances.items()), columns=['Class', 'Instances Count'])
         print(df.to_string(index=False))
+
+
+    def get_max_instances_nparray(self):
+        """
+        Возвращает массив numpy, содержащий максимальное количество экземпляров в каждом классе.
+        """
+        # Инициализация массива для хранения максимального количества экземпляров каждого класса
+        max_instances_per_class = np.zeros(self.classes_count, dtype=int)
+
+        # Заполнение массива данными
+        for class_index in range(self.classes_count):
+            class_name = self.class_names[class_index]
+            max_instances_per_class[class_index] = self.class_instances[class_name]
+
+        return max_instances_per_class
