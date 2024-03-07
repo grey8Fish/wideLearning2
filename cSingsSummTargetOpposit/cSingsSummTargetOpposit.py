@@ -284,6 +284,10 @@ file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 argClasses = data_loader.arg_classes
+#data_loader.print_arg_classes()
+#max_instances = data_loader.get_max_instances_nparray()
+#print(max_instances)
+#print(argClasses)
 
 #nameFileTrain0 = 'seed0_23_11_26.csv'
 #nameFileTrain1 = 'seed1_23_11_26.csv'

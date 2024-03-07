@@ -1,6 +1,5 @@
 ﻿#1. Пробный шаг надо сделать первым шагом
 #2. Вставить проверку противоположной категории
-
 import csv
 import numpy as np
 import pandas as pd
@@ -28,7 +27,7 @@ class DataLoader:
         self.file_names = file_names  # Список имен файлов CSV для обработки
         self.classes_count = 0        # Количество уникальных классов в данных
         self.instances_max = 0        # Максимальное количество экземпляров в каждом классе
-        self.ordinate_count = 0       # Количество столбцов в данных за исключением 'number' и 'target'
+        self.ordinate_count = 0       # Количество столбцов в данных за исключением 'RowNum' и target_column
         self.arg_classes = None       # Массив для хранения обработанных данных
         self.column_names = None      # Список названий столбцов
         self.target_column = None     # Имя самой правой колонки
@@ -48,9 +47,10 @@ class DataLoader:
                 if not self.column_names:
                     # Задание имени самой правой колонки
                     self.target_column = csv_reader.fieldnames[-1]
-                    # Исключаем 'number' и самую правую колонку, имя которой хранится в self.target_column
-                    self.column_names = [col for col in csv_reader.fieldnames if col not in ['number', 'ID', self.target_column]]
+                    # Исключаем 'RowNum' и самую правую колонку, имя которой хранится в self.target_column
+                    self.column_names = [col for col in csv_reader.fieldnames if col not in ['RowNum', self.target_column]]
                     self.ordinate_count = len(self.column_names)
+                    #print(len(self.column_names))
 
                 for row in csv_reader:
                     class_label = row[self.target_column]
@@ -63,33 +63,45 @@ class DataLoader:
         self.classes_count = len(class_instances)
         self.instances_max = max(class_instances.values())
         # Инициализация массива для хранения данных
+        #print('ArgClasses initialized with parameters:')
+        #print([self.classes_count, self.instances_max, self.ordinate_count + 4])
         self.arg_classes = np.zeros((self.classes_count, self.instances_max, self.ordinate_count + 4), dtype=np.int32)
         self.class_names = list(class_instances.keys())
         self.class_instances = class_instances 
         
 
-
-
-
     def load_data(self):
         """
-        Загрузка и обработка данных из файлов.
+        Загружает данные из файлов CSV в массив arg_classes.
         """
-        for i, file_name in enumerate(self.file_names):
+        # Проверяем, что column_names уже определены
+        if not self.column_names:
+            raise ValueError("Column names must be defined before loading data.")
+        
+        # Проходим по каждому имени файла и его индексу в списке self.file_names
+        for class_index, file_name in enumerate(self.file_names):
             with open(file_name, encoding='utf-8') as file:
-                csv_reader = csv.reader(file, delimiter=',')
-                for j, row in enumerate(csv_reader):
-                    if j < self.instances_max:
-                        processed_row = []
-                        for item in row:
-                            try:
-                                # Преобразование в целое число, если возможно
-                                processed_row.append(int(item))
-                            except ValueError:
-                                # Обработка нечисловых значений (например, пропуск или замена на 0)
-                                processed_row.append(0)
-                        # Сохранение обработанного ряда в массив
-                        self.arg_classes[i, j, :len(processed_row)] = processed_row
+                csv_reader = csv.DictReader(file)
+                row_index = 0  # Индекс для отслеживания текущей строки в arg_classes
+            
+                for row in csv_reader:
+                    if row_index >= self.instances_max:
+                        break  # Прекращаем чтение, если достигли максимального количества экземпляров
+                
+                    # Заполняем соответствующую строку в arg_classes для текущего класса
+                    for iVector, column_name in enumerate(self.column_names):
+                        # Преобразуем значение в int, предполагая, что все значения числовые
+                        try:
+                            value = int(row[column_name])
+                        except ValueError:
+                            # Если преобразование не удалось, используем 0 как запасное значение
+                            value = 0
+                        
+                        self.arg_classes[class_index][row_index][iVector] = value
+                
+                    row_index += 1
+        #print(self.arg_classes)
+
 
     def get_data(self):
         """
@@ -99,6 +111,7 @@ class DataLoader:
             numpy.ndarray: Массив загруженных данных.
         """
         return self.arg_classes
+
 
     def get_column_names(self):
         """
@@ -113,6 +126,7 @@ class DataLoader:
                 self.column_names = csv_reader.fieldnames
         return self.column_names
     
+
     def print_column_names(self):
         """
         Print список названий столбцов данных.
@@ -125,22 +139,34 @@ class DataLoader:
         """
         Вывод данных arg_classes в виде таблицы.
         """
-        # Преобразуем данные из self.arg_classes в список списков для DataFrame
-        data_list = self.arg_classes.reshape(-1, self.arg_classes.shape[-1])
-        # Удаляем строки, полностью состоящие из нулей
-        data_list = data_list[~np.all(data_list == 0, axis=1)]
+        # Предполагаем, что есть 4 дополнительных столбца (например, 'Extra')
+        total_columns = self.ordinate_count + 4
+    
+        # Проходим по каждому классу
+        for class_index in range(self.classes_count):
+            class_name = self.class_names[class_index]
+            print(f"\nClass {class_name}:")
+        
+            # Проходим по каждому экземпляру в классе
+            for instance_index in range(self.instances_max):
+                instance_data = []
+                # Проходим по каждому атрибуту 
+                for attribute_index in range(self.ordinate_count):
+                    # Получаем значение атрибута
+                    value = self.arg_classes[class_index, instance_index, attribute_index]
+                    # Формируем строку атрибут-значение
+                    attribute_value_str = f"{self.column_names[attribute_index]}: {value}"
+                    instance_data.append(attribute_value_str)
+            
+                # Добавляем дополнительные столбцы, если они есть
+                for extra_column_index in range(self.ordinate_count, total_columns):
+                    extra_value = self.arg_classes[class_index, instance_index, extra_column_index]
+                    if extra_value != 0:  # Предположим, что выводим дополнительные столбцы, только если они не нулевые
+                        instance_data.append(f"Extra{extra_column_index-self.ordinate_count+1}: {extra_value}")
+            
+                # Выводим данные экземпляра
+                print(f"Instance {instance_index+1}: " + ", ".join(instance_data))
 
-        # Формируем полный список названий столбцов, включая специальные столбцы 'number' и 'target'
-        # Учитываем, что self.column_names уже содержит нужные названия столбцов без 'number' и 'target'
-        full_column_names = self.column_names + ['number', 'target']
-
-        # Создаем DataFrame только с необходимыми столбцами
-        # Ограничиваем количество столбцов в DataFrame до количества в full_column_names
-        df = pd.DataFrame(data_list[:, :len(full_column_names)], columns=full_column_names)
-
-        # Выводим DataFrame с учетом настроек отображения
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-            print(df.to_string(index=False))
 
     def get_class_names(self):
         """
@@ -148,9 +174,25 @@ class DataLoader:
         """
         return self.class_names
 
+
     def print_class_instances_table(self):
         """
         Выводит таблицу соответствия классов и количества их экземпляров.
         """
         df = pd.DataFrame(list(self.class_instances.items()), columns=['Class', 'Instances Count'])
         print(df.to_string(index=False))
+
+
+    def get_max_instances_nparray(self):
+        """
+        Возвращает массив numpy, содержащий максимальное количество экземпляров в каждом классе.
+        """
+        # Инициализация массива для хранения максимального количества экземпляров каждого класса
+        max_instances_per_class = np.zeros(self.classes_count, dtype=int)
+
+        # Заполнение массива данными
+        for class_index in range(self.classes_count):
+            class_name = self.class_names[class_index]
+            max_instances_per_class[class_index] = self.class_instances[class_name]
+
+        return max_instances_per_class
