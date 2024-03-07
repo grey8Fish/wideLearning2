@@ -54,6 +54,7 @@ class DataLoader:
                     # Исключаем 'number' и самую правую колонку, имя которой хранится в self.target_column
                     self.column_names = [col for col in csv_reader.fieldnames if col not in ['number', 'ID', self.target_column]]
                     self.ordinate_count = len(self.column_names)
+                    #print(len(self.column_names))
 
                 for row in csv_reader:
                     class_label = row[self.target_column]
@@ -66,6 +67,8 @@ class DataLoader:
         self.classes_count = len(class_instances)
         self.instances_max = max(class_instances.values())
         # Инициализация массива для хранения данных
+        #print('ArgClasses initialized with parameters:')
+        #print([self.classes_count, self.instances_max, self.ordinate_count + 4])
         self.arg_classes = np.zeros((self.classes_count, self.instances_max, self.ordinate_count + 4), dtype=np.int32)
         self.class_names = list(class_instances.keys())
         self.class_instances = class_instances 
@@ -73,23 +76,35 @@ class DataLoader:
 
     def load_data(self):
         """
-        Загрузка и обработка данных из файлов.
+        Загружает данные из файлов CSV в массив arg_classes.
         """
-        for i, file_name in enumerate(self.file_names):
+        # Проверяем, что column_names уже определены
+        if not self.column_names:
+            raise ValueError("Column names must be defined before loading data.")
+        
+        # Проходим по каждому имени файла и его индексу в списке self.file_names
+        for class_index, file_name in enumerate(self.file_names):
             with open(file_name, encoding='utf-8') as file:
-                csv_reader = csv.reader(file, delimiter=',')
-                for j, row in enumerate(csv_reader):
-                    if j < self.instances_max:
-                        processed_row = []
-                        for item in row:
-                            try:
-                                # Преобразование в целое число, если возможно
-                                processed_row.append(int(item))
-                            except ValueError:
-                                # Обработка нечисловых значений (например, пропуск или замена на 0)
-                                processed_row.append(0)
-                        # Сохранение обработанного ряда в массив
-                        self.arg_classes[i, j, :len(processed_row)] = processed_row
+                csv_reader = csv.DictReader(file)
+                row_index = 0  # Индекс для отслеживания текущей строки в arg_classes
+            
+                for row in csv_reader:
+                    if row_index >= self.instances_max:
+                        break  # Прекращаем чтение, если достигли максимального количества экземпляров
+                
+                    # Заполняем соответствующую строку в arg_classes для текущего класса
+                    for iVector, column_name in enumerate(self.column_names):
+                        # Преобразуем значение в int, предполагая, что все значения числовые
+                        try:
+                            value = int(row[column_name])
+                        except ValueError:
+                            # Если преобразование не удалось, используем 0 как запасное значение
+                            value = 0
+                        
+                        self.arg_classes[class_index][row_index][iVector] = value
+                
+                    row_index += 1
+        #print(self.arg_classes)
 
 
     def get_data(self):
