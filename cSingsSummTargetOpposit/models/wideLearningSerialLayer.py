@@ -34,6 +34,34 @@ class wideLearningSerialLayer:
 	def getClassesName(self):
 		return self.classesName			#имена классов
 
+	def calcScalarMul(self, curWeights):
+		yy = 0
+		while yy < self.countClasses:
+			uu = 0 
+			while uu < self.countInstancesEachClassTraining[uu]:
+				self.inputsClassTraining[yy][uu][self.sizeVector+1] = np.dot(self.inputsClassTraining[yy, uu, :self.sizeVector], curWeights)
+			uu += 1
+		yy += 1
+
+	def getMinMaxScalarMul(self):
+		iiMin = self.inputsClassTraining[0][0][self.sizeVector+1]
+		opMin = -1
+		iiMax = self.inputsClassTraining[0][0][self.sizeVector+1]
+		taMax = -1
+		yy = 0
+		while yy < self.countClasses:
+			uu = 0 
+			while uu < self.countInstancesEachClassTraining[uu]:
+				if iiMin > self.inputsClassTraining[yy][uu][self.sizeVector+1]:
+					iiMin = self.inputsClassTraining[yy][uu][self.sizeVector+1]
+					opmin = yy
+				if iiMax < self.inputsClassTraining[yy][uu][self.sizeVector+1]:
+					iiMax = self.inputsClassTraining[yy][uu][self.sizeVector+1]
+					taMax = yy
+			uu += 1
+		yy += 1
+		return opMin, taMax
+
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
@@ -44,7 +72,7 @@ wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
 wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
 #wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
-ff = 0
+#ff = 0
 qq = 0
 while qq < wlsl.countClasses-1:
 	ww = 0
@@ -55,11 +83,14 @@ while qq < wlsl.countClasses-1:
 			while rr < wlsl.countInstancesEachClassTraining[ee]:
 				tt = 0 
 				while tt < wlsl.sizeVector:
-					#первоначальное приближение вектора весов ПРОВЕРИТЬ
+					#первоначальное приближение вектора весов 
 					wlsl.currentWeights[tt] = wlsl.inputsClassTraining[qq][ww][tt] - wlsl.inputsClassTraining[ee][rr][tt]
 					tt += 1
+				#
+				#aa = np.dot(wlsl.inputsClassTraining[qq, ww, :wlsl.sizeVector], wlsl.currentWeights)
+				wlsl.calcScalarMul(wlsl.currentWeights)
 				rr += 1
-				ff += 1
+				#ff += 1
 			ee += 1
 		ww += 1
 	qq += 1
