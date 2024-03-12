@@ -65,7 +65,8 @@ class DataLoader:
         # Инициализация массива для хранения данных
         #print('ArgClasses initialized with parameters:')
         #print([self.classes_count, self.instances_max, self.ordinate_count + 4])
-        self.arg_classes = np.zeros((self.classes_count, self.instances_max, self.ordinate_count + 4), dtype=np.int32)
+        #self.arg_classes = np.zeros((self.classes_count, self.instances_max, self.ordinate_count + 4), dtype=np.int32)
+        self.arg_classes = np.zeros((self.classes_count+1, self.instances_max*2, self.ordinate_count + 2), dtype=np.int32)
         self.class_names = list(class_instances.keys())
         self.class_instances = class_instances 
         
