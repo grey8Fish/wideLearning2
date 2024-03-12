@@ -3,27 +3,68 @@ import csv
 from models.DataLoader import DataLoader
 
 class wideLearningSerialLayer:
-	def __init__(self, countClasses, maxInstance, sizeVector, nameFile):	#получает количество столбцов=размер вектора весов, количество классов, количество экземпляров, имя файла
-		self.currentWeights = np.zeros(sizeVector, dtype=int)		#текущий вектор весов
-		self.previousWeights = np.zeros(sizeVector, dtype=int)		#предыдущий вектор весов
-		#self.bestWeights = np.zeros(10, sizeVector+1, dtype=int)	#10 лучших весов, в последнем столбце количество отсеченных
-		self.countInstancesEachClassCorrection = np.zeros(countClasses, dtype=int)	#количество экземпляров в каждом классе корректирующей выборки
-		self.countInstancesEachClassTraining = np.zeros(countClasses, dtype=int)	#количество экземпляров в каждом классе обучающей выборки
+	def __init__(self, coClasses, maxInstance, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
+		self.countClasses = coClasses	#количество классов
+		self.sizeVector = siVector		#длина вектора весов / количество столбцов выборки
+		self.currentWeights = np.zeros(siVector, dtype=int)		#текущий вектор весов
+		self.previousWeights = np.zeros(siVector, dtype=int)		#предыдущий вектор весов
+		#self.bestWeights = np.zeros(10, siVector+1, dtype=int)	#10 лучших весов, в последнем столбце количество отсеченных
+		self.countInstancesEachClassCorrection = np.zeros(coClasses, dtype=int)	#количество экземпляров в каждом классе корректирующей выборки
+		self.countInstancesEachClassTraining = np.zeros(coClasses, dtype=int)	#количество экземпляров в каждом классе обучающей выборки
 		self.columnName = None		#имена столбцов
 		self.classesName = None		#имена классов
-		self.inputsClassCorrection = np.zeros((countClasses, maxInstance, sizeVector), dtype=int)	#входные экземпляры корректирующей выборки
-		self.inputsClassTraining = np.zeros((countClasses, maxInstance, sizeVector), dtype=int)		#входные экземпляры обучающей выборки
+		self.inputsClassCorrection = np.zeros((coClasses, maxInstance, siVector+2), dtype=int)	#входные экземпляры корректирующей выборки
+		self.inputsClassTraining = None #np.zeros((coClasses, maxInstance, siVector+2), dtype=int)		#входные экземпляры обучающей выборки
+
+	def getInputsClassTraining(self):
+		return self.inputsClassTraining
+	
+	def getCountInstancesEachClassTraining(self):
+		return self.countInstancesEachClassTraining
 
 	def setColumnName(self, columName):
 		self.columnName = columName #имена столбцов
 
+	def getColumnName(self):
+		return self.columnName		#имена столбцов
+
+	def setClassesName(self, classesName):
+		self.classesName = classesName	#имена классов
+
+	def getClassesName(self):
+		return self.classesName			#имена классов
+
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
-argClasses = data_loader.arg_classes
-#nameColumn = data_loader.get_column_names()
-qq = data_loader.instances_max
 
-wlsl = wideLearningSerialLayer(3, 67, 123, 'fileNameTmp')
+wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
 wlsl.setColumnName(data_loader.get_column_names())
+wlsl.setClassesName(data_loader.get_class_names())
+wlsl.inputsClassTraining = data_loader.get_data().copy()
+wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
+#wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
+ff = 0
+qq = 0
+while qq < wlsl.countClasses-1:
+	ww = 0
+	while ww < wlsl.countInstancesEachClassTraining[qq]:
+		ee = qq + 1
+		while ee < wlsl.countClasses:
+			rr = 0
+			while rr < wlsl.countInstancesEachClassTraining[ee]:
+				tt = 0 
+				while tt < wlsl.sizeVector:
+					#первоначальное приближение вектора весов ПРОВЕРИТЬ
+					wlsl.currentWeights[tt] = wlsl.inputsClassTraining[qq][ww][tt] - wlsl.inputsClassTraining[ee][rr][tt]
+					tt += 1
+				rr += 1
+				ff += 1
+			ee += 1
+		ww += 1
+	qq += 1
+				#tt = 0
+
+#print(wlsl.getInputsClassTraining())
+#print(wlsl.getCountInstancesEachClassTraining())
 qq = 9.5
