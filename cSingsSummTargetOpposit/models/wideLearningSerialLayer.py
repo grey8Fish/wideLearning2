@@ -3,7 +3,8 @@ import csv
 from models.DataLoader import DataLoader
 
 class wideLearningSerialLayer:
-	def __init__(self, coClasses, maxInstance, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
+	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
+		self.maxInstance = maxInst		#Удвоенное максимальное количество экземпляров выборки
 		self.countClasses = coClasses	#количество классов
 		self.sizeVector = siVector		#длина вектора весов / количество столбцов выборки
 		self.currentWeights = np.zeros(siVector, dtype=int)		#текущий вектор весов
@@ -13,8 +14,8 @@ class wideLearningSerialLayer:
 		self.countInstancesEachClassTraining = np.zeros(coClasses, dtype=int)	#количество экземпляров в каждом классе обучающей выборки
 		self.columnName = None		#имена столбцов
 		self.classesName = None		#имена классов
-		self.inputsClassCorrection = np.zeros((coClasses, maxInstance, siVector+2), dtype=int)	#входные экземпляры корректирующей выборки
-		self.inputsClassTraining = None #np.zeros((coClasses, maxInstance, siVector+2), dtype=int)		#входные экземпляры обучающей выборки
+		self.inputsClassCorrection = np.zeros((coClasses, maxInst, siVector+2), dtype=int)	#входные экземпляры корректирующей выборки
+		self.inputsClassTraining = None #np.zeros((coClasses, maxInst, siVector+2), dtype=int)		#входные экземпляры обучающей выборки
 	#Вернуть 3-х мерную матрицу экземпляров обучающей выборки
 	def getInputsClassTraining(self):
 		return self.inputsClassTraining
@@ -115,6 +116,10 @@ class wideLearningSerialLayer:
 		while uu < self.countInstancesEachClassTraining[tCat]:
 			if noTaMax < self.inputsClassTraining[tCat][uu][self.sizeVector+1]:
 				self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 1
+			uu += 1
+		while uu < self.maxInstance:
+			self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 1
+			uu += 1
 	#Определить количество отсечённых экземпляров в целевой категории
 	def calcCutOffSignTarget(self, tCat, noTaMax):
 		yy = 0
@@ -124,6 +129,16 @@ class wideLearningSerialLayer:
 				yy += 1
 			uu += 1
 		return yy
+	#Установить в 1 столбец «признак отсеченности» в противоположной категории
+	def setColCutOffSignOpposit(self, oCat, noOpMin):
+		uu = 0
+		while uu < self.countInstancesEachClassTraining[oCat]:
+			if noOpMin > self.inputsClassTraining[oCat][uu][self.sizeVector+1]:
+				self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 1
+			uu += 1
+		while uu < self.maxInstance:
+			self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 1
+			uu +=1
 	#Определить количество отсечённых экземпляров в противоположной категории
 	def calcCutOffSignOpposit(self, tOpp, noOpMin):
 		yy = 0
@@ -133,6 +148,11 @@ class wideLearningSerialLayer:
 				yy += 1
 			uu += 1
 		return yy
+	#Сортировать указанную категорию по возрастанию «признака отсечённости» 
+	def sortCategoryCutOff(self, curCat):
+		a = self.inputsClassTraining[curCat] 
+		a = a[a[:,-1].argsort()]
+
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
@@ -164,15 +184,15 @@ while qq < wlsl.countClasses-1:
 				mm = wlsl.getMinMaxScalarMul()
 				opCat = int(mm[0])
 				taCat = int(mm[1])
-				#Определить максимальное значение скалярного произведения в не целевых категориях
+				#Определить максимальное значение скалярного произведения в НЕ целевых категориях
 				noTargMax = wlsl.calcNoTarMax(taCat)
 				#Определить количество отсечённых экземпляров в целевой категории
 				countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
-				#Определить минимальное значение скалярного произведения в не противоположных категориях
+				#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
 				noOppoMin = wlsl.calcNoOppMin(opCat)
 				#Определить количество отсечённых экземпляров в противоположной категории
 				countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
-				countCutOffCurrent = countCufOffOpposit#countCutOffTarget# +  + 
+				countCutOffCurrent = countCufOffOpposit + countCutOffTarget
 				if countCutOffPrev < countCutOffCurrent:
 					countCutOffPrev = countCutOffCurrent
 					wlsl.previousWeights = wlsl.currentWeights.copy()
@@ -181,8 +201,10 @@ while qq < wlsl.countClasses-1:
 			ee += 1
 		ww += 1
 	qq += 1
-				#tt = 0
-
+wlsl.setColCutOffSignTarget(taCat, noTargMax)
+wlsl.setColCutOffSignOpposit(opCat, noOppoMin)
+wlsl.sortCategoryCutOff(taCat)
+wlsl.sortCategoryCutOff(opCat)
 #print(wlsl.getInputsClassTraining())
 #print(wlsl.getCountInstancesEachClassTraining())
 qq = 9.5
