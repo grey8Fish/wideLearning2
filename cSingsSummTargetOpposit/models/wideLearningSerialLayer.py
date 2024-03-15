@@ -1,10 +1,11 @@
+#import sys
 import numpy as np
 import csv
 from models.DataLoader import DataLoader
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
-		self.maxInstance = maxInst		#Удвоенное максимальное количество экземпляров выборки
+		self.maxInstance = maxInst * 2		#Удвоенное максимальное количество экземпляров выборки
 		self.countClasses = coClasses	#количество классов
 		self.sizeVector = siVector		#длина вектора весов / количество столбцов выборки
 		self.currentWeights = np.zeros(siVector, dtype=int)		#текущий вектор весов
@@ -52,6 +53,7 @@ class wideLearningSerialLayer:
 				self.inputsClassTraining[yy][uu][self.sizeVector+1] = 0
 				uu += 1
 			yy += 1
+
 	#Определить целевую и противоположную категории
 	def getMinMaxScalarMul(self):
 		iiMin = self.inputsClassTraining[0][0][self.sizeVector+1]
@@ -110,6 +112,7 @@ class wideLearningSerialLayer:
 				self.inputsClassTraining[yy][uu][self.sizeVector+2] = 0
 				uu += 1
 			yy += 1
+
 	#Установить в 1 столбец «признак отсеченности» в целевой категории
 	def setColCutOffSignTarget(self, tCat, noTaMax):
 		uu = 0
@@ -150,8 +153,11 @@ class wideLearningSerialLayer:
 		return yy
 	#Сортировать указанную категорию по возрастанию «признака отсечённости» 
 	def sortCategoryCutOff(self, curCat):
-		a = self.inputsClassTraining[curCat] 
+		'''a = self.inputsClassTraining[curCat] 
 		a = a[a[:,-1].argsort()]
+		print(a)'''
+		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
+		#qq = 9
 
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 data_loader = DataLoader(file_names)
@@ -192,19 +198,35 @@ while qq < wlsl.countClasses-1:
 				noOppoMin = wlsl.calcNoOppMin(opCat)
 				#Определить количество отсечённых экземпляров в противоположной категории
 				countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
-				countCutOffCurrent = countCufOffOpposit + countCutOffTarget
+				countCutOffCurrent = countCutOffTarget + countCufOffOpposit
 				if countCutOffPrev < countCutOffCurrent:
 					countCutOffPrev = countCutOffCurrent
 					wlsl.previousWeights = wlsl.currentWeights.copy()
+					countCutOffRight = countCutOffTarget
+					categoryRight = taCat
+					maxNoRight = noTargMax
+					countCufOffLeft = countCufOffOpposit
+					categoryLeft = opCat
+					minNoLeft = noOppoMin
 				rr += 1
 				#ff += 1
 			ee += 1
 		ww += 1
 	qq += 1
-wlsl.setColCutOffSignTarget(taCat, noTargMax)
-wlsl.setColCutOffSignOpposit(opCat, noOppoMin)
-wlsl.sortCategoryCutOff(taCat)
-wlsl.sortCategoryCutOff(opCat)
-#print(wlsl.getInputsClassTraining())
-#print(wlsl.getCountInstancesEachClassTraining())
+np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+#Инициализировать столбец «значение скалярного произведения»
+wlsl.initColScalarMul(wlsl.previousWeights)
+#Установить в 1 столбец «признак отсеченности» в целевой категории
+wlsl.setColCutOffSignTarget(categoryRight, maxNoRight)
+#Сортировать указанную категорию по возрастанию «признака отсечённости»
+wlsl.sortCategoryCutOff(categoryRight)
+#print(wlsl.inputsClassTraining[categoryRight])
+
+#Установить в 1 столбец «признак отсеченности» в противоположной категории
+wlsl.setColCutOffSignOpposit(categoryLeft, minNoLeft)
+#Сортировать указанную категорию по возрастанию «признака отсечённости»
+wlsl.sortCategoryCutOff(categoryLeft)
+#print(wlsl.inputsClassTraining[categoryLeft])
+wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
+wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
 qq = 9.5

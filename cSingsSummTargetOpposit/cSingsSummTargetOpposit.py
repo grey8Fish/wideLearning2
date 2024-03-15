@@ -124,8 +124,7 @@ def calcCutoffDistance(classesCoun, instancesMa, ordinateCoun, categoryTarge, ca
             if (argClasse[iMatrix][iRow][0] * argClasse[iMatrix][iRow][0] + argClasse[iMatrix][iRow][1] *
                 argClasse[iMatrix][iRow][1]) == 0:
                 break
-            argClasse[iMatrix][iRow][ordinateCoun + 2] = np.dot(argClasse[iMatrix, iRow, :ordinateCoun + 1],
-                                                                vectorWeightsCur)
+            argClasse[iMatrix][iRow][ordinateCoun + 2] = np.dot(argClasse[iMatrix, iRow, :ordinateCoun + 1], vectorWeightsCur)
             iRow += 1
         iMatrix += 1
     # установка признака отсеченности целевой категории
