@@ -113,16 +113,23 @@ class wideLearningSerialLayer:
 				uu += 1
 			yy += 1
 
-	#Установить в 1 столбец «признак отсеченности» в целевой категории
+	#Установить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
 	def setColCutOffSignTarget(self, tCat, noTaMax):
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[tCat]:
 			if noTaMax < self.inputsClassTraining[tCat][uu][self.sizeVector+1]:
 				self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 1
+				behindWall = self.inputsClassTraining[tCat][uu][self.sizeVector+1]
 			uu += 1
 		while uu < self.maxInstance:
 			self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 1
 			uu += 1
+		uu = 0
+		while uu < self.countInstancesEachClassTraining[tCat]:
+			if (self.inputsClassTraining[tCat][uu][self.sizeVector+2] == 1) and (behindWall > self.inputsClassTraining[tCat][uu][self.sizeVector+1]):
+				behindWall = self.inputsClassTraining[tCat][uu][self.sizeVector+1]
+			uu += 1
+		return behindWall
 	#Определить количество отсечённых экземпляров в целевой категории
 	def calcCutOffSignTarget(self, tCat, noTaMax):
 		yy = 0
@@ -132,16 +139,23 @@ class wideLearningSerialLayer:
 				yy += 1
 			uu += 1
 		return yy
-	#Установить в 1 столбец «признак отсеченности» в противоположной категории
+	#Установить в 1 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
 	def setColCutOffSignOpposit(self, oCat, noOpMin):
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[oCat]:
 			if noOpMin > self.inputsClassTraining[oCat][uu][self.sizeVector+1]:
 				self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 1
+				behindWall = self.inputsClassTraining[oCat][uu][self.sizeVector+1]
 			uu += 1
 		while uu < self.maxInstance:
 			self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 1
 			uu +=1
+		uu = 0
+		while uu < self.countInstancesEachClassTraining[oCat]:
+			if (self.inputsClassTraining[oCat][uu][self.sizeVector+2] == 1) and (behindWall < self.inputsClassTraining[oCat][uu][self.sizeVector+1]):
+				behindWall = self.inputsClassTraining[oCat][uu][self.sizeVector+1]
+			uu += 1
+		return behindWall
 	#Определить количество отсечённых экземпляров в противоположной категории
 	def calcCutOffSignOpposit(self, tOpp, noOpMin):
 		yy = 0
@@ -216,17 +230,25 @@ while qq < wlsl.countClasses-1:
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 #Инициализировать столбец «значение скалярного произведения»
 wlsl.initColScalarMul(wlsl.previousWeights)
-#Установить в 1 столбец «признак отсеченности» в целевой категории
-wlsl.setColCutOffSignTarget(categoryRight, maxNoRight)
+#становить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
+thresholdRight = wlsl.setColCutOffSignTarget(categoryRight, maxNoRight)
+thresholdRight = (thresholdRight + maxNoRight) // 2
 #Сортировать указанную категорию по возрастанию «признака отсечённости»
 wlsl.sortCategoryCutOff(categoryRight)
 #print(wlsl.inputsClassTraining[categoryRight])
 
-#Установить в 1 столбец «признак отсеченности» в противоположной категории
-wlsl.setColCutOffSignOpposit(categoryLeft, minNoLeft)
+#Установить в 1 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
+thresholdLeft = wlsl.setColCutOffSignOpposit(categoryLeft, minNoLeft)
+thresholdLeft = (thresholdLeft + minNoLeft) // 2
 #Сортировать указанную категорию по возрастанию «признака отсечённости»
 wlsl.sortCategoryCutOff(categoryLeft)
 #print(wlsl.inputsClassTraining[categoryLeft])
-wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
+
+print(wlsl.previousWeights, sep=';')
+print(categoryLeft, categoryRight, sep=';')
+print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],'; ',countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft])
+print(thresholdLeft, thresholdRight, sep=';')
+
 wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
+wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
 qq = 9.5
