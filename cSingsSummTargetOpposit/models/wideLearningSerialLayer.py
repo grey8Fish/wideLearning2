@@ -1,3 +1,4 @@
+import time
 #import sys
 import numpy as np
 import csv
@@ -183,72 +184,78 @@ wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
 wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
 #wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
-#ff = 0
-countCutOffPrev = 0
-qq = 0
-while qq < wlsl.countClasses-1:
-	ww = 0
-	while ww < wlsl.countInstancesEachClassTraining[qq]:
-		ee = qq + 1
-		while ee < wlsl.countClasses:
-			rr = 0
-			while rr < wlsl.countInstancesEachClassTraining[ee]:
-				tt = 0 
-				while tt < wlsl.sizeVector:
-					#первоначальное приближение вектора весов 
-					wlsl.currentWeights[tt] = wlsl.inputsClassTraining[qq][ww][tt] - wlsl.inputsClassTraining[ee][rr][tt]
-					tt += 1
-				#Инициализировать столбец «значение скалярного произведения»
-				wlsl.initColScalarMul(wlsl.currentWeights)
-				#Определить целевую и противоположную категории
-				mm = wlsl.getMinMaxScalarMul()
-				opCat = int(mm[0])
-				taCat = int(mm[1])
-				#Определить максимальное значение скалярного произведения в НЕ целевых категориях
-				noTargMax = wlsl.calcNoTarMax(taCat)
-				#Определить количество отсечённых экземпляров в целевой категории
-				countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
-				#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
-				noOppoMin = wlsl.calcNoOppMin(opCat)
-				#Определить количество отсечённых экземпляров в противоположной категории
-				countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
-				countCutOffCurrent = countCutOffTarget + countCufOffOpposit
-				if countCutOffPrev < countCutOffCurrent:
-					countCutOffPrev = countCutOffCurrent
-					wlsl.previousWeights = wlsl.currentWeights.copy()
-					countCutOffRight = countCutOffTarget
-					categoryRight = taCat
-					maxNoRight = noTargMax
-					countCufOffLeft = countCufOffOpposit
-					categoryLeft = opCat
-					minNoLeft = noOppoMin
-				rr += 1
-				#ff += 1
-			ee += 1
-		ww += 1
-	qq += 1
-np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-#Инициализировать столбец «значение скалярного произведения»
-wlsl.initColScalarMul(wlsl.previousWeights)
-#становить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
-thresholdRight = wlsl.setColCutOffSignTarget(categoryRight, maxNoRight)
-thresholdRight = (thresholdRight + maxNoRight) // 2
-#Сортировать указанную категорию по возрастанию «признака отсечённости»
-wlsl.sortCategoryCutOff(categoryRight)
-#print(wlsl.inputsClassTraining[categoryRight])
+nn = 0
+while nn < 6:
+	countCutOffPrev = 0
+	qq = 0
+	while qq < wlsl.countClasses-1:
+		ww = 0
+		while ww < wlsl.countInstancesEachClassTraining[qq]:
+			ee = qq + 1
+			while ee < wlsl.countClasses:
+				rr = 0
+				while rr < wlsl.countInstancesEachClassTraining[ee]:
+					tt = 0 
+					while tt < wlsl.sizeVector:
+						#первоначальное приближение вектора весов 
+						wlsl.currentWeights[tt] = wlsl.inputsClassTraining[qq][ww][tt] - wlsl.inputsClassTraining[ee][rr][tt]
+						tt += 1
+					#Инициализировать столбец «значение скалярного произведения»
+					wlsl.initColScalarMul(wlsl.currentWeights)
+					#Определить целевую и противоположную категории
+					mm = wlsl.getMinMaxScalarMul()
+					opCat = int(mm[0])
+					taCat = int(mm[1])
+					#Определить максимальное значение скалярного произведения в НЕ целевых категориях
+					noTargMax = wlsl.calcNoTarMax(taCat)
+					#Определить количество отсечённых экземпляров в целевой категории
+					countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
+					#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
+					noOppoMin = wlsl.calcNoOppMin(opCat)
+					#Определить количество отсечённых экземпляров в противоположной категории
+					countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
+					countCutOffCurrent = countCutOffTarget + countCufOffOpposit
+					if countCutOffPrev < countCutOffCurrent:
+						countCutOffPrev = countCutOffCurrent
+						wlsl.previousWeights = wlsl.currentWeights.copy()
+						countCutOffRight = countCutOffTarget
+						categoryRight = taCat
+						maxNoRight = noTargMax
+						countCufOffLeft = countCufOffOpposit
+						categoryLeft = opCat
+						minNoLeft = noOppoMin
+					rr += 1
+					#ff += 1
+				ee += 1
+			ww += 1
+		qq += 1
+	np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+	#Инициализировать столбец «значение скалярного произведения»
+	wlsl.initColScalarMul(wlsl.previousWeights)
+	#становить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
+	thresholdRight = wlsl.setColCutOffSignTarget(categoryRight, maxNoRight)
+	thresholdRight = (thresholdRight + maxNoRight) // 2
+	#Сортировать указанную категорию по возрастанию «признака отсечённости»
+	wlsl.sortCategoryCutOff(categoryRight)
+	#print(wlsl.inputsClassTraining[categoryRight])
 
-#Установить в 1 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
-thresholdLeft = wlsl.setColCutOffSignOpposit(categoryLeft, minNoLeft)
-thresholdLeft = (thresholdLeft + minNoLeft) // 2
-#Сортировать указанную категорию по возрастанию «признака отсечённости»
-wlsl.sortCategoryCutOff(categoryLeft)
-#print(wlsl.inputsClassTraining[categoryLeft])
+	#Установить в 1 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
+	thresholdLeft = wlsl.setColCutOffSignOpposit(categoryLeft, minNoLeft)
+	thresholdLeft = (thresholdLeft + minNoLeft) // 2
+	#Сортировать указанную категорию по возрастанию «признака отсечённости»
+	wlsl.sortCategoryCutOff(categoryLeft)
+	#print(wlsl.inputsClassTraining[categoryLeft])
 
-print(wlsl.previousWeights, sep=';')
-print(categoryLeft, categoryRight, sep=';')
-print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],'; ',countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft])
-print(thresholdLeft, thresholdRight, sep=';')
+	print(wlsl.previousWeights, sep=';')
+	print(categoryLeft, categoryRight, sep=';')
+	print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],'; ',countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryRight])
+	print(thresholdLeft, thresholdRight, sep=';')
 
-wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
-wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
+	wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
+	wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
+	seconds = time.time()
+	local_time = time.ctime(seconds)
+	print("Местное время:", local_time)
+	nn += 1
+
 qq = 9.5
