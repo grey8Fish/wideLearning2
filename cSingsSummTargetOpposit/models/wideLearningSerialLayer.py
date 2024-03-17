@@ -174,7 +174,8 @@ class wideLearningSerialLayer:
 		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
 		#qq = 9
 
-file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
+#file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
+file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 
@@ -234,14 +235,16 @@ while nn < 6:
 	wlsl.initColScalarMul(wlsl.previousWeights)
 	#становить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
 	thresholdRight = wlsl.setColCutOffSignTarget(categoryRight, maxNoRight)
-	thresholdRight = (thresholdRight + maxNoRight) // 2
+	#thresholdRight = (thresholdRight + maxNoRight) // 2
+	thresholdRight = (thresholdRight // 2)+ (maxNoRight // 2)
 	#Сортировать указанную категорию по возрастанию «признака отсечённости»
 	wlsl.sortCategoryCutOff(categoryRight)
 	#print(wlsl.inputsClassTraining[categoryRight])
 
 	#Установить в 1 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
 	thresholdLeft = wlsl.setColCutOffSignOpposit(categoryLeft, minNoLeft)
-	thresholdLeft = (thresholdLeft + minNoLeft) // 2
+	#thresholdLeft = (thresholdLeft + minNoLeft) // 2
+	thresholdLeft = (thresholdLeft //2) + (minNoLeft // 2)
 	#Сортировать указанную категорию по возрастанию «признака отсечённости»
 	wlsl.sortCategoryCutOff(categoryLeft)
 	#print(wlsl.inputsClassTraining[categoryLeft])
@@ -253,9 +256,9 @@ while nn < 6:
 
 	wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
 	wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
-	seconds = time.time()
+	'''seconds = time.time()
 	local_time = time.ctime(seconds)
-	print("Местное время:", local_time)
+	print("Местное время:", local_time)'''
 	nn += 1
 
 qq = 9.5
