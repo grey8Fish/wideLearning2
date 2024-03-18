@@ -2,7 +2,7 @@ import time
 #import sys
 import numpy as np
 import csv
-from models.DataLoader import DataLoader
+from DataLoader import DataLoader
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
@@ -123,7 +123,7 @@ class wideLearningSerialLayer:
 				behindWall = self.inputsClassTraining[tCat][uu][self.sizeVector+1]
 			uu += 1
 		while uu < self.maxInstance:
-			self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 1
+			self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 3
 			uu += 1
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[tCat]:
@@ -140,20 +140,20 @@ class wideLearningSerialLayer:
 				yy += 1
 			uu += 1
 		return yy
-	#Установить в 1 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
+	#Установить в 2 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
 	def setColCutOffSignOpposit(self, oCat, noOpMin):
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[oCat]:
 			if noOpMin > self.inputsClassTraining[oCat][uu][self.sizeVector+1]:
-				self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 1
+				self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 2
 				behindWall = self.inputsClassTraining[oCat][uu][self.sizeVector+1]
 			uu += 1
 		while uu < self.maxInstance:
-			self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 1
+			self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 3
 			uu +=1
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[oCat]:
-			if (self.inputsClassTraining[oCat][uu][self.sizeVector+2] == 1) and (behindWall < self.inputsClassTraining[oCat][uu][self.sizeVector+1]):
+			if (self.inputsClassTraining[oCat][uu][self.sizeVector+2] == 2) and (behindWall < self.inputsClassTraining[oCat][uu][self.sizeVector+1]):
 				behindWall = self.inputsClassTraining[oCat][uu][self.sizeVector+1]
 			uu += 1
 		return behindWall
@@ -174,8 +174,8 @@ class wideLearningSerialLayer:
 		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
 		#qq = 9
 
-#file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
-file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
+file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
+#file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 
@@ -185,8 +185,8 @@ wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
 wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
 #wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
-nn = 0
-while nn < 6:
+nn = 2
+while nn >= 2:
 	countCutOffPrev = 0
 	qq = 0
 	while qq < wlsl.countClasses-1:
@@ -241,7 +241,7 @@ while nn < 6:
 	wlsl.sortCategoryCutOff(categoryRight)
 	#print(wlsl.inputsClassTraining[categoryRight])
 
-	#Установить в 1 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
+	#Установить в 2 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
 	thresholdLeft = wlsl.setColCutOffSignOpposit(categoryLeft, minNoLeft)
 	#thresholdLeft = (thresholdLeft + minNoLeft) // 2
 	thresholdLeft = (thresholdLeft //2) + (minNoLeft // 2)
@@ -249,16 +249,21 @@ while nn < 6:
 	wlsl.sortCategoryCutOff(categoryLeft)
 	#print(wlsl.inputsClassTraining[categoryLeft])
 
-	print(wlsl.previousWeights, sep=';')
-	print(categoryLeft, categoryRight, sep=';')
-	print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],'; ',countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryRight])
-	print(thresholdLeft, thresholdRight, sep=';')
+	print(wlsl.previousWeights)
+	print(categoryLeft, categoryRight, sep=' ')
+	print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryRight])
+	print(thresholdLeft, thresholdRight, sep=' ')
 
 	wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
 	wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
 	'''seconds = time.time()
 	local_time = time.ctime(seconds)
 	print("Местное время:", local_time)'''
-	nn += 1
+	nn = 0
+	rr = 0
+	while rr < wlsl.countClasses:
+		if wlsl.countInstancesEachClassTraining[rr] > 0:
+			nn += 1
+		rr += 1
 
 qq = 9.5
