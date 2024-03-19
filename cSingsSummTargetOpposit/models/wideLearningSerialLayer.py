@@ -173,6 +173,29 @@ class wideLearningSerialLayer:
 		print(a)'''
 		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
 		#qq = 9
+	
+	def print_inputsClassTraining(self):
+		"""
+		вывод inputsClassTraining
+		"""
+		total_columns = self.sizeVector + 2  
+		# Проходим по каждому классу
+		for class_index in range(self.countClasses):
+			print(f"\nClass {class_index}:")
+    
+			# Проходим по каждому экземпляру в классе
+			for instance_index in range(len(self.inputsClassTraining[class_index])):
+				instance_data = []
+				# Проходим по каждому атрибуту
+				for attribute_index in range(self.sizeVector):
+					# Получаем значение атрибута
+					value = self.inputsClassTraining[class_index, instance_index, attribute_index]
+					# Формируем строку атрибут-значение
+					attribute_value_str = f"Attribute {attribute_index}: {value}"
+					instance_data.append(attribute_value_str)
+        
+				# Выводим данные экземпляра
+				print(f"Instance {instance_index+1}: " + ", ".join(instance_data))
 
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
@@ -248,6 +271,7 @@ while nn >= 2:
 	#Сортировать указанную категорию по возрастанию «признака отсечённости»
 	wlsl.sortCategoryCutOff(categoryLeft)
 	#print(wlsl.inputsClassTraining[categoryLeft])
+	
 
 	print(wlsl.previousWeights)
 	print(categoryLeft, categoryRight, sep=' ')
@@ -265,5 +289,8 @@ while nn >= 2:
 		if wlsl.countInstancesEachClassTraining[rr] > 0:
 			nn += 1
 		rr += 1
+	
+	#вывод inputsClassTraining
+	wlsl.print_inputsClassTraining()
 
 qq = 9.5
