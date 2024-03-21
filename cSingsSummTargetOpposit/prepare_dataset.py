@@ -166,6 +166,10 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
     # Шаги 2-4: Обработка каждой колонки данных, исключая колонки класса и экземпляра
     for column in df.columns:
         if column not in columns_to_exclude:
+            # Если задано макс. количество значащих цифр, округляем
+            if significant_digits is not None:
+                df[column] = df[column].apply(lambda x: round(x, significant_digits - int(math.floor(math.log10(abs(x)))) - 1) if x != 0 else 0)
+
             # Шаг 2: Умножение на 10^n, где n - количество знаков после запятой
             n_decimal = get_decimal_places(df[column])
             df[column] *= 10**n_decimal
@@ -189,10 +193,6 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
     
             # Применение масштабирования к значениям в колонке
             df[column] *= scale_factor
-            
-            # Если задано макс. количество значащих цифр, округляем
-            if significant_digits is not None:
-                df[column] = df[column].apply(lambda x: round(x, significant_digits - int(math.floor(math.log10(abs(x)))) - 1) if x != 0 else 0)
 
             # Конвертация значений в целые числа
             df[column] = df[column].astype(int)
@@ -296,10 +296,10 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 #Настройка здесь
 #В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "cirrhosis.csv" # Имя файла (с расширением)
-    class_column = "Stage"  # Целевая колонка
-    instance_column = "ID"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    #significant_digits = 4  # Максимальное количество значащих цифр перед округлением
+    file_name = "WineQT.csv" # Имя файла (с расширением)
+    class_column = "quality"  # Целевая колонка
+    instance_column = "Id"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+    significant_digits = 4  # Максимальное количество значащих цифр перед округлением
     #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле Если нет - комментируем всю строчку или оставляем пусстой список.
     #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы. Если нет - комментируем всю строчку или оставляем пусстой список.
 
