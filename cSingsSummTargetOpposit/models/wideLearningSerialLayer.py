@@ -6,7 +6,7 @@ from DataLoader import DataLoader
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
-		self.maxInstance = maxInst * 2		#Удвоенное максимальное количество экземпляров выборки
+		self.maxInstance = maxInst		#Удвоенное максимальное количество экземпляров выборки
 		self.countClasses = coClasses	#количество классов
 		self.sizeVector = siVector		#длина вектора весов / количество столбцов выборки
 		self.currentWeights = np.zeros(siVector, dtype=int)		#текущий вектор весов
@@ -17,7 +17,7 @@ class wideLearningSerialLayer:
 		self.columnName = None		#имена столбцов
 		self.classesName = None		#имена классов
 		self.inputsClassCorrection = np.zeros((coClasses, maxInst, siVector+2), dtype=int)	#входные экземпляры корректирующей выборки
-		self.inputsClassTraining = None #np.zeros((coClasses, maxInst, siVector+2), dtype=int)		#входные экземпляры обучающей выборки
+		self.inputsClassTraining = np.zeros((coClasses, maxInst, siVector+2), dtype=int)		#входные экземпляры обучающей выборки
 	#Вернуть 3-х мерную матрицу экземпляров обучающей выборки
 	def getInputsClassTraining(self):
 		return self.inputsClassTraining
@@ -173,13 +173,16 @@ class wideLearningSerialLayer:
 		print(a)'''
 		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
 		#qq = 9
-
+np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 #file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
-file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
+#file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
+file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']
+#file_names = ['HotelReservations_0_part0_20240319174159.csv','HotelReservations_1_part0_20240319174159.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 
-wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
+#wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
+wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
 wlsl.setColumnName(data_loader.get_column_names())
 wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
@@ -187,6 +190,9 @@ wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().c
 #wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
 nn = 2
 while nn >= 2:
+	seconds = time.time()
+	local_time = time.ctime(seconds)
+	print("Местное время:", local_time)
 	countCutOffPrev = 0
 	qq = 0
 	while qq < wlsl.countClasses-1:
@@ -228,9 +234,10 @@ while nn >= 2:
 					rr += 1
 					#ff += 1
 				ee += 1
+			#print(ww)
 			ww += 1
 		qq += 1
-	np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+	
 	#Инициализировать столбец «значение скалярного произведения»
 	wlsl.initColScalarMul(wlsl.previousWeights)
 	#становить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
@@ -256,9 +263,6 @@ while nn >= 2:
 
 	wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
 	wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
-	'''seconds = time.time()
-	local_time = time.ctime(seconds)
-	print("Местное время:", local_time)'''
 	nn = 0
 	rr = 0
 	while rr < wlsl.countClasses:

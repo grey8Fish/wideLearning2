@@ -48,8 +48,8 @@ class DataLoader:
                     # Задание имени самой правой колонки
                     self.target_column = csv_reader.fieldnames[-1]
                     # Исключаем 'RowNum' и самую правую колонку, имя которой хранится в self.target_column
-                    self.column_names = [col for col in csv_reader.fieldnames if col not in ['RowNum', self.target_column]]
-                    self.ordinate_count = len(self.column_names)
+                    self.column_names = [col for col in csv_reader.fieldnames if col not in [self.target_column]]#'RowNum', self.target_column]]
+                    self.ordinate_count = len(self.column_names)-1
                     #print(len(self.column_names))
 
                 for row in csv_reader:
@@ -65,8 +65,8 @@ class DataLoader:
         # Инициализация массива для хранения данных
         #print('ArgClasses initialized with parameters:')
         #print([self.classes_count, self.instances_max, self.ordinate_count + 4])
-        #self.arg_classes = np.zeros((self.classes_count, self.instances_max, self.ordinate_count + 4), dtype=np.int32)
-        self.arg_classes = np.zeros((self.classes_count+1, self.instances_max*2, self.ordinate_count + 2), dtype=np.int32)
+        self.arg_classes = np.zeros((self.classes_count, self.instances_max, self.ordinate_count + 3), dtype=np.int32)
+        #self.arg_classes = np.zeros((self.classes_count+1, self.instances_max*2, self.ordinate_count + 2), dtype=np.int32)
         self.class_names = list(class_instances.keys())
         self.class_instances = class_instances 
         
