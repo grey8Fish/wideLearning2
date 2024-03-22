@@ -1,6 +1,7 @@
 ﻿#Подготовка датасета для widelearning
 #Блок настройки в конце программы (if __name__ == "__main__":)
 
+import math
 import numpy as np
 import pandas as pd
 import os
@@ -146,7 +147,7 @@ def map_df(df, file_name, output_folder, class_column):
     return df
 
 
-def calculate_columns(df, class_column, ignored_columns, columns_data):
+def calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits=None):
     """
     Выполнение математических операций над колонками DataFrame: масштабирование и центрирование данных.
 
@@ -165,6 +166,10 @@ def calculate_columns(df, class_column, ignored_columns, columns_data):
     # Шаги 2-4: Обработка каждой колонки данных, исключая колонки класса и экземпляра
     for column in df.columns:
         if column not in columns_to_exclude:
+            # Если задано макс. количество значащих цифр, округляем
+            if significant_digits is not None:
+                df[column] = df[column].apply(lambda x: round(x, significant_digits - int(math.floor(math.log10(abs(x)))) - 1) if x != 0 else 0)
+
             # Шаг 2: Умножение на 10^n, где n - количество знаков после запятой
             n_decimal = get_decimal_places(df[column])
             df[column] *= 10**n_decimal
@@ -188,7 +193,7 @@ def calculate_columns(df, class_column, ignored_columns, columns_data):
     
             # Применение масштабирования к значениям в колонке
             df[column] *= scale_factor
-    
+
             # Конвертация значений в целые числа
             df[column] = df[column].astype(int)
     
@@ -245,7 +250,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column):
 
 
     
-def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None):
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None):
     """
     Главная функция обработки файла: чтение, подготовка, обработка и сохранение данных. Функция выполняет следующие шаги:
     1. Инициализирует выходную директорию, очищая её или создавая новую, если необходимо.
@@ -278,8 +283,8 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     
     # Шаг 5: Выполнение математических операций над колонками
     columns_data = []  # Инициализация списка для сбора информации о колонках
-    df = calculate_columns(df, class_column, ignored_columns, columns_data)
-    
+    df = calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits)
+
     # Шаг 6: Сохранение и перестановка колонок перед сохранением
     save_and_rearrange_df(df, output_folder, file_name, class_column)
   
@@ -287,22 +292,27 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     columns_info = pd.DataFrame(columns_data)
     print(columns_info.to_string(index=False))
 
-####################################################################### quality,Id
+#######################################################################
 #Настройка здесь
 #В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "milknew.csv" # Имя файла (с расширением)
-    class_column = "Grade"  # Целевая колонка
-    #instance_column = "Id"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-#    file_name = "milknew.csv" # Имя файла (с расширением)
- #   class_column = "Grade"  # Целевая колонка
-    #instance_column = "Id"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-#    file_name = "HotelReservations.csv" # Имя файла (с расширением)
- #   class_column = "booking_status"  # Целевая колонка
-  #  instance_column = "Booking_ID"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-#    file_name = "WineQT.csv" # Имя файла (с расширением)
- #   class_column = "quality"  # Целевая колонка
-  #  instance_column = "Id"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+    file_name = "WineQT.csv" # Имя файла (с расширением)
+    class_column = "quality"  # Целевая колонка
+    instance_column = "Id"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+    
+#   file_name = "milknew.csv" # Имя файла (с расширением)
+#   class_column = "Grade"  # Целевая колонка
+#   instance_column = "Id"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+#   file_name = "milknew.csv" # Имя файла (с расширением)
+#   class_column = "Grade"  # Целевая колонка
+#   instance_column = "Id"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+#   file_name = "HotelReservations.csv" # Имя файла (с расширением)
+#   class_column = "booking_status"  # Целевая колонка
+#   instance_column = "Booking_ID"  # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+#   file_name = "WineQT.csv" # Имя файла (с расширением)
+#   class_column = "quality"  # Целевая колонка
+
+    significant_digits = 4  # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле Если нет - комментируем всю строчку или оставляем пусстой список.
     #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы. Если нет - комментируем всю строчку или оставляем пусстой список.
 
@@ -313,8 +323,8 @@ if __name__ == "__main__":
         **({"instance_column": locals().get('instance_column')} if 'instance_column' in locals() else {}),  # Условное добавление instance_column с проверкой на существование
         **({"excluded_columns": locals().get('excluded_columns', [])}),  # Условное добавление excluded_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
         **({"ignored_columns": locals().get('ignored_columns', [])}),  # Условное добавление ignored_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
+        **({"significant_digits": locals().get('significant_digits')} if 'significant_digits' in locals() else {}),  # Условное добавление significant_digits с проверкой на существование
     }
 
     # Вызов функции с использованием распаковки словаря аргументов
     process(**process_args)
-
