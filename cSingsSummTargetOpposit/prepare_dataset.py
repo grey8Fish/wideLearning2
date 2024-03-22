@@ -210,7 +210,7 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
     return df
 
 
-def save_and_rearrange_df(df, output_folder, file_name, class_column):
+def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class):
     """
     Сохранение и перестановка колонок в DataFrame перед сохранением в файл.
 
@@ -236,6 +236,8 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column):
     # Сохранение отдельных файлов по классу с разбиением на части
     grouped_df = df.groupby(class_column)
     for class_val, group in grouped_df:
+        if max_rows_per_class is not None:
+            group = group.head(max_rows_per_class) # Ограничение кол-ва строк
         n_rows = len(group)
         rows_per_file = max(n_rows // 3, 1)  # Деление на 3 части, но не меньше одной строки на файл
 
@@ -249,8 +251,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column):
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
 
 
-    
-def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None):
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None, max_rows_per_class=None):
     """
     Главная функция обработки файла: чтение, подготовка, обработка и сохранение данных. Функция выполняет следующие шаги:
     1. Инициализирует выходную директорию, очищая её или создавая новую, если необходимо.
@@ -286,7 +287,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     df = calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits)
 
     # Шаг 6: Сохранение и перестановка колонок перед сохранением
-    save_and_rearrange_df(df, output_folder, file_name, class_column)
+    save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class)
   
     # Шаг 7: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
@@ -313,6 +314,8 @@ if __name__ == "__main__":
 #   class_column = "quality"  # Целевая колонка
 
     significant_digits = 4  # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    max_rows_per_class = 200  # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
+   
     #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле Если нет - комментируем всю строчку или оставляем пусстой список.
     #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы. Если нет - комментируем всю строчку или оставляем пусстой список.
 
@@ -324,6 +327,7 @@ if __name__ == "__main__":
         **({"excluded_columns": locals().get('excluded_columns', [])}),  # Условное добавление excluded_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
         **({"ignored_columns": locals().get('ignored_columns', [])}),  # Условное добавление ignored_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
         **({"significant_digits": locals().get('significant_digits')} if 'significant_digits' in locals() else {}),  # Условное добавление significant_digits с проверкой на существование
+        **({"max_rows_per_class": locals().get('max_rows_per_class')} if 'max_rows_per_class' in locals() else {}),  # Условное добавление max_rows_per_class с проверкой на существование
     }
 
     # Вызов функции с использованием распаковки словаря аргументов
