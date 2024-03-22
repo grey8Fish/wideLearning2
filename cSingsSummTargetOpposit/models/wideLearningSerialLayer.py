@@ -255,6 +255,7 @@ while nn >= 2:
 	#Сортировать указанную категорию по возрастанию «признака отсечённости»
 	wlsl.sortCategoryCutOff(categoryLeft)
 	#print(wlsl.inputsClassTraining[categoryLeft])
+	
 
 	print(wlsl.previousWeights)
 	print(categoryLeft, categoryRight, sep=' ')
@@ -269,5 +270,8 @@ while nn >= 2:
 		if wlsl.countInstancesEachClassTraining[rr] > 0:
 			nn += 1
 		rr += 1
+	
+	#вывод inputsClassTraining
+	wlsl.print_inputsClassTraining()
 
 qq = 9.5
