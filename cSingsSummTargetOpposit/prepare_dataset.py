@@ -236,8 +236,11 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     # Сохранение отдельных файлов по классу с разбиением на части
     grouped_df = df.groupby(class_column)
     for class_val, group in grouped_df:
-        if max_rows_per_class is not None:
-            group = group.head(max_rows_per_class) # Ограничение кол-ва строк
+        if max_rows_per_class is not None: # Ограничение кол-ва экземепляров в одном файле
+            if len(group) > max_rows_per_class:
+                group = group.sample(n=max_rows_per_class, random_state=1)  # random_state для воспроизводимости
+            else:
+                group = group
         n_rows = len(group)
         rows_per_file = max(n_rows // 3, 1)  # Деление на 3 части, но не меньше одной строки на файл
 
@@ -314,7 +317,7 @@ if __name__ == "__main__":
 #   class_column = "quality"  # Целевая колонка
 
     significant_digits = 4  # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
-    max_rows_per_class = 200  # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
+    max_rows_per_class = 500  # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
    
     #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле Если нет - комментируем всю строчку или оставляем пусстой список.
     #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы. Если нет - комментируем всю строчку или оставляем пусстой список.
