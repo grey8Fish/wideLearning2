@@ -57,10 +57,16 @@ class wideLearningSerialLayer:
 
 	#Определить целевую и противоположную категории
 	def getMinMaxScalarMul(self):
-		iiMin = self.inputsClassTraining[0][0][self.sizeVector+1]
-		opMin = 0
-		iiMax = self.inputsClassTraining[0][0][self.sizeVector+1]
-		taMax = 0
+		yy = 0
+		while yy < self.countClasses:
+			if self.countInstancesEachClassTraining[yy] == 0:
+				yy += 1
+				continue
+			iiMin = self.inputsClassTraining[yy][0][self.sizeVector+1]
+			opMin = yy
+			iiMax = self.inputsClassTraining[yy][0][self.sizeVector+1]
+			taMax = yy
+			break
 		yy = 0
 		while yy < self.countClasses:
 			uu = 0 
@@ -76,7 +82,14 @@ class wideLearningSerialLayer:
 		return opMin, taMax
 	#Определить максимальное значение скалярного произведения в не целевых категориях
 	def calcNoTarMax(self, tarCate):
-		noTarMax = 0
+		yy = 0
+		while yy < self.countClasses:
+			if yy == tarCate:
+				yy += 1
+				continue
+			if self.countInstancesEachClassTraining[yy] != 0:
+				noTarMax = self.inputsClassTraining[yy][0][self.sizeVector+1]
+			yy += 1
 		yy = 0
 		while yy < self.countClasses:
 			if yy == tarCate:
@@ -91,7 +104,15 @@ class wideLearningSerialLayer:
 		return noTarMax
 	#Определить минимальное значение скалярного произведения в не противоположных категориях
 	def calcNoOppMin(self, oppCate):
-		noOppMin = 0
+		yy = 0
+		while yy < self.countClasses:
+			if yy == oppCate:
+				yy += 1
+				continue
+			if self.countInstancesEachClassTraining[yy] != 0:
+				noOppMin = self.inputsClassTraining[yy][0][self.sizeVector+1]
+			yy += 1
+		#noOppMin = 0#из предидущей функции аналогично
 		yy = 0
 		while yy < self.countClasses:
 			if yy == oppCate:
@@ -116,6 +137,8 @@ class wideLearningSerialLayer:
 
 	#Установить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
 	def setColCutOffSignTarget(self, tCat, noTaMax):
+#	def setColCutOffSignTarget(self, tCat, noTaMax, bb):
+		behindWall = noTaMax
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[tCat]:
 			if noTaMax < self.inputsClassTraining[tCat][uu][self.sizeVector+1]:
@@ -142,6 +165,7 @@ class wideLearningSerialLayer:
 		return yy
 	#Установить в 2 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
 	def setColCutOffSignOpposit(self, oCat, noOpMin):
+		behindWall = noOpMin
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[oCat]:
 			if noOpMin > self.inputsClassTraining[oCat][uu][self.sizeVector+1]:
@@ -176,8 +200,10 @@ class wideLearningSerialLayer:
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 #file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
-file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']
+#file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']
 #file_names = ['HotelReservations_0_part0_20240319174159.csv','HotelReservations_1_part0_20240319174159.csv']
+file_names = ['outputWineQT\\WineQT_5_part0_20240322162654.csv','outputWineQT\\WineQT_6_part0_20240322162654.csv','outputWineQT\\WineQT_7_part0_20240322162654.csv','outputWineQT\\WineQT_4_part0_20240322162654.csv','outputWineQT\\WineQT_8_part0_20240322162654.csv','outputWineQT\\WineQT_3_part0_20240322162654.csv']
+			  #
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 
@@ -215,10 +241,12 @@ while nn >= 2:
 					taCat = int(mm[1])
 					#Определить максимальное значение скалярного произведения в НЕ целевых категориях
 					noTargMax = wlsl.calcNoTarMax(taCat)
+					#print(noTargMax)
 					#Определить количество отсечённых экземпляров в целевой категории
 					countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
 					#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
 					noOppoMin = wlsl.calcNoOppMin(opCat)
+					#print(noOppoMin)
 					#Определить количество отсечённых экземпляров в противоположной категории
 					countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
 					countCutOffCurrent = countCutOffTarget + countCufOffOpposit
@@ -227,6 +255,7 @@ while nn >= 2:
 						wlsl.previousWeights = wlsl.currentWeights.copy()
 						countCutOffRight = countCutOffTarget
 						categoryRight = taCat
+						#print(noTargMax)
 						maxNoRight = noTargMax
 						countCufOffLeft = countCufOffOpposit
 						categoryLeft = opCat
@@ -242,6 +271,7 @@ while nn >= 2:
 	wlsl.initColScalarMul(wlsl.previousWeights)
 	#становить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
 	thresholdRight = wlsl.setColCutOffSignTarget(categoryRight, maxNoRight)
+	#thresholdRight = wlsl.setColCutOffSignTarget(categoryRight, maxNoRight, bb)
 	#thresholdRight = (thresholdRight + maxNoRight) // 2
 	thresholdRight = (thresholdRight // 2)+ (maxNoRight // 2)
 	#Сортировать указанную категорию по возрастанию «признака отсечённости»
@@ -258,7 +288,7 @@ while nn >= 2:
 	
 
 	print(wlsl.previousWeights)
-	print(categoryLeft, categoryRight, sep=' ')
+	print(wlsl.classesName[categoryLeft], wlsl.classesName[categoryRight], sep=' ')
 	print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryRight])
 	print(thresholdLeft, thresholdRight, sep=' ')
 
@@ -270,8 +300,7 @@ while nn >= 2:
 		if wlsl.countInstancesEachClassTraining[rr] > 0:
 			nn += 1
 		rr += 1
-	
 	#вывод inputsClassTraining
-	wlsl.print_inputsClassTraining()
+	#wlsl.print_inputsClassTraining()
 
 qq = 9.5
