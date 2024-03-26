@@ -1,0 +1,18 @@
+ Том в устройстве D имеет метку work
+ Серийный номер тома: CE72-E34F
+
+ Содержимое папки D:\DoctorDegree\wideLearning2\cSingsSummTargetOpposit\outputCancer
+
+25.03.2024  15:43    <DIR>          .
+25.03.2024  15:43    <DIR>          ..
+25.03.2024  15:38           140 165 cancer_prediction_dataset.csv
+25.03.2024  15:41             5 110 cancer_prediction_dataset_0_part0_20240325154122.csv
+25.03.2024  15:41             5 069 cancer_prediction_dataset_0_part1_20240325154122.csv
+25.03.2024  15:41             5 071 cancer_prediction_dataset_0_part2_20240325154122.csv
+25.03.2024  15:41             5 073 cancer_prediction_dataset_1_part0_20240325154122.csv
+25.03.2024  15:41             5 087 cancer_prediction_dataset_1_part1_20240325154122.csv
+25.03.2024  15:41             5 103 cancer_prediction_dataset_1_part2_20240325154122.csv
+25.03.2024  15:41           251 499 cancer_prediction_dataset_20240325154122.csv
+25.03.2024  15:43                 0 nameFiles.txt
+               9 файлов        422 177 байт
+               2 папок  2 249 132 175 360 байт свободно

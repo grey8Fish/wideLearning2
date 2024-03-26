@@ -202,8 +202,10 @@ np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
 #file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']
 #file_names = ['HotelReservations_0_part0_20240319174159.csv','HotelReservations_1_part0_20240319174159.csv']
-file_names = ['outputWineQT\\WineQT_5_part0_20240322162654.csv','outputWineQT\\WineQT_6_part0_20240322162654.csv','outputWineQT\\WineQT_7_part0_20240322162654.csv','outputWineQT\\WineQT_4_part0_20240322162654.csv','outputWineQT\\WineQT_8_part0_20240322162654.csv','outputWineQT\\WineQT_3_part0_20240322162654.csv']
-			  #
+file_names = ['outputGender\\gender_classification_v7_0_part0_20240325124654.csv','outputGender\\gender_classification_v7_1_part0_20240325124654.csv']
+			#'outputCancer\\cancer_prediction_dataset_0_part0_20240325154122.csv','outputCancer\\cancer_prediction_dataset_1_part0_20240325154122.csv'
+			#'outputGender\\gender_classification_v7_0_part0_20240325124654.csv','outputGender\\gender_classification_v7_1_part0_20240325124654.csv'	
+			  #'outputWineQT\\WineQT_5_part0_20240322162654.csv','outputWineQT\\WineQT_6_part0_20240322162654.csv','outputWineQT\\WineQT_7_part0_20240322162654.csv','outputWineQT\\WineQT_4_part0_20240322162654.csv','outputWineQT\\WineQT_8_part0_20240322162654.csv','outputWineQT\\WineQT_3_part0_20240322162654.csv'
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 
@@ -286,11 +288,11 @@ while nn >= 2:
 	wlsl.sortCategoryCutOff(categoryLeft)
 	#print(wlsl.inputsClassTraining[categoryLeft])
 	
-
-	print(wlsl.previousWeights)
-	print(wlsl.classesName[categoryLeft], wlsl.classesName[categoryRight], sep=' ')
+	print(thresholdLeft, thresholdRight, sep=', ')
+	print(wlsl.classesName[categoryLeft], wlsl.classesName[categoryRight], sep=', ')
+	print(wlsl.previousWeights, sep=', ')
 	print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryRight])
-	print(thresholdLeft, thresholdRight, sep=' ')
+	
 
 	wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
 	wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
