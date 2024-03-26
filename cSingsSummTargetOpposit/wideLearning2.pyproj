@@ -44,6 +44,7 @@
     <Folder Include="sources\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Sources\apple_quality.csv" />
     <Content Include="sources\cirrhosis.csv" />
     <Content Include="Sources\HotelReservations.csv" />
     <Content Include="Sources\loan_sanction_test.csv" />
