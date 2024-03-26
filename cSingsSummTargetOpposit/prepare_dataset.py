@@ -204,7 +204,7 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
             min_value = df[column].min()
             max_value = df[column].max()
             columns_data.append({'Column Name': column, 
-                                 'ScaleFactor': round(scale_factor), 
+                                 'ScaleFactor': scale_factor, 
                                  'UniqueCount': unique_values, 
                                  'Min': min_value, 
                                  'Max': max_value})
