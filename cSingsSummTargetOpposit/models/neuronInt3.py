@@ -1,4 +1,6 @@
 import numpy as np
+import csv
+from DataLoader import DataLoader
 
 class neuronInt3:
 	def __init__(self, sVector):
@@ -73,50 +75,59 @@ n06.setBorders(-755, -755)
 n06.setCategories(1, 0)
 n06.setVectorWeights([-40,  -5,   6, -40,  40,   0,   0])
 
-inputs = np.array([20,	-2,	-14,	-20,	20,	20,	-20,	3899])
+#inputs = np.array([20,	-2,	-14,	-20,	20,	20,	-20,	3899])
 #inputs = np.array([20,	-19,	2,	20,	20,	-20,	-20,	633])
+np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+file_names = ['outputGender\\gender_classification_v7_0_part0_20240325124654.csv','outputGender\\gender_classification_v7_1_part0_20240325124654.csv']
+data_loader = DataLoader(file_names)
+data_loader.load_data()
+
 qq = 0
-while qq < 1:
-	ee = n01.digit3activationFunction(inputs)
-	if ee == 1:
+while qq < 200:
+	ee = n01.digit3activationFunction(data_loader.arg_classes[0][qq][:7])
+	if ee == -1:
+		if data_loader.arg_classes[0][qq][-1] != 1: #Проверка на принадлежность к классу
+			print('error\n')
 		qq += 1
 		continue
-	elif ee == -1:
+	elif ee == 1:
+		if data_loader.arg_classes[0][qq][-1] != 0:
+			print('error\n')
 		qq += 1
 		continue
 	ee = n02.digit3activationFunction(inputs)
-	if ee == 1:
+	if ee == -1:
 		qq += 1
 		continue
-	elif ee == -1:
+	elif ee == 1:
 		qq += 1
 		continue
 	ee = n03.digit3activationFunction(inputs)
-	if ee == 1:
+	if ee == -1:
 		qq += 1
 		continue
-	elif ee == -1:
+	elif ee == 1:
 		qq += 1
 		continue
 	ee = n04.digit3activationFunction(inputs)
-	if ee == 1:
+	if ee == -1:
 		qq += 1
 		continue
-	elif ee == -1:
+	elif ee == 1:
 		qq += 1
 		continue
 	ee = n05.digit3activationFunction(inputs)
-	if ee == 1:
+	if ee == -1:
 		qq += 1
 		continue
-	elif ee == -1:
+	elif ee == 1:
 		qq += 1
 		continue
 	ee = n06.digit3activationFunction(inputs)
-	if ee == 1:
+	if ee == -1:
 		qq += 1
 		continue
-	elif ee == -1:
+	elif ee == 1:
 		qq += 1
 		continue
 
