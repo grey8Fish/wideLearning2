@@ -1,0 +1,16 @@
+error in 3 neurons, instance  463
+error in 2 neurons, instance  1106
+error in 4 neurons, instance  1643
+error in 1 neurons, instance  2879
+error in 1 neurons, instance  4936
+
+error in 4 neurons, instance  2711
+error in 4 neurons, instance  3866
+error in 5 neurons, instance  3389
+error in 1 neurons, instance  4299
+error in 4 neurons, instance  3126
+error in 2 neurons, instance  1668
+error in 2 neurons, instance  417
+error in 5 neurons, instance  3072
+error in 1 neurons, instance  8
+
