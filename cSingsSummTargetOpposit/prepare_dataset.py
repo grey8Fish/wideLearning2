@@ -215,11 +215,15 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
 def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu=34, percent_test=33, percent_correct=33):
     """
     Сохранение и перестановка колонок в DataFrame перед сохранением в файл.
-
+    
     :param df: DataFrame для сохранения.
     :param output_folder: Папка для сохранения файла.
     :param file_name: Исходное имя файла для создания имени выходного файла.
     :param class_column: Название целевой колонки класса, которая будет перемещена в конец DataFrame.
+    :param max_rows_per_class: Максимальное количество строк на класс.
+    :param percent_edu: Процент данных для обучения.
+    :param percent_test: Процент данных для тестирования.
+    :param percent_correct: Процент данных для коррекции.
     """
     # Определение timestamp для именования файлов
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")    
@@ -241,18 +245,24 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
         if max_rows_per_class is not None: # Ограничение кол-ва экземепляров в одном файле
             if len(group) > max_rows_per_class:
                 group = group.sample(n=max_rows_per_class, random_state=1)  # random_state для воспроизводимости
-            else:
-                group = group
-        n_rows = len(group)
-        rows_per_file = max(n_rows // 3, 1)  # Деление на 3 части, но не меньше одной строки на файл
+            #else:
+                #group = group
 
-        for part in range(3):
-            start_row = part * rows_per_file
-            end_row = start_row + rows_per_file
+        n_rows = len(group)
+        rows_for_edu = round(n_rows * percent_edu / 100)
+        rows_for_test = round(n_rows * percent_test / 100)
+        rows_for_correct = n_rows - rows_for_edu - rows_for_test
+
+        #rows_per_file = max(n_rows // 3, 1)  # Деление на 3 части, но не меньше одной строки на файл
+
+        # Создание и сохранение файлов по частям
+        for part, rows_count, name_part in zip([0, 1, 2], [rows_for_edu, rows_for_test, rows_for_correct], ['edu', 'test', 'cor']):
+            start_row = sum([rows_for_edu, rows_for_test, rows_for_correct][:part])
+            end_row = start_row + rows_count
             subset_df = group.iloc[start_row:end_row]
 
             # Генерация названия файла с учетом класса и части
-            subset_file_name = f"{os.path.splitext(file_name)[0]}_{class_val}_part{part}_{timestamp}.csv"
+            subset_file_name = f"{os.path.splitext(file_name)[0]}_class_{class_val}_{name_part}_{timestamp}.csv"
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
 
 
@@ -292,25 +302,27 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     df = calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits)
 
     # Шаг 6: Сохранение и перестановка колонок перед сохранением
-    save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu=None, percent_test=None, percent_correct=None)
+    save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
   
     # Шаг 7: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
     print(columns_info.to_string(index=False))
 
+
 #######################################################################
-#Настройка здесь
-#В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
+# Настройка здесь
+# В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
     file_name = "apple_quality.csv"     # Имя файла (с расширением)
     class_column = "Quality"            # Целевая колонка
     instance_column = "A_id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
     significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
-    max_rows_per_class = 100            # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
+    max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
-    percent_edu = 34
-    percent_test = 33
-    percent_correct = 33 
+    # Разделение выборки, в процентах
+    percent_edu = 60        
+    percent_test = 30
+    percent_correct = 10 
 
    
 #   file_name = "milknew.csv" # Имя файла (с расширением)
@@ -329,6 +341,7 @@ if __name__ == "__main__":
     #excluded_columns = []  # Список колонок, которые будут ИСКЛЮЧЕНЫ из выборки (если необходимо) - данных колонок НЕ будет в выходном файле Если нет - комментируем всю строчку или оставляем пусстой список.
     #ignored_columns = []  # Список колонок, которые будут ИГНОРИРОВАТЬСЯ обработчиком (если необходимо) - данные колонки будут в выходном файле, но не будут преобразованы. Если нет - комментируем всю строчку или оставляем пусстой список.
 
+    # Конец настройки
     # Создание словаря с аргументами для функции и проверками на существование аргумента
     process_args = {
         "file_name": file_name,
