@@ -212,7 +212,7 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
     return df
 
 
-def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class):
+def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu=34, percent_test=33, percent_correct=33):
     """
     Сохранение и перестановка колонок в DataFrame перед сохранением в файл.
 
@@ -256,7 +256,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
 
 
-def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None, max_rows_per_class=None):
+def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None, max_rows_per_class=None, percent_edu=None, percent_test=None, percent_correct=None):
     """
     Главная функция обработки файла: чтение, подготовка, обработка и сохранение данных. Функция выполняет следующие шаги:
     1. Инициализирует выходную директорию, очищая её или создавая новую, если необходимо.
@@ -292,7 +292,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     df = calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits)
 
     # Шаг 6: Сохранение и перестановка колонок перед сохранением
-    save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class)
+    save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu=None, percent_test=None, percent_correct=None)
   
     # Шаг 7: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
@@ -307,6 +307,11 @@ if __name__ == "__main__":
     instance_column = "A_id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
     significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     max_rows_per_class = 100            # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
+    
+    percent_edu = 34
+    percent_test = 33
+    percent_correct = 33 
+
    
 #   file_name = "milknew.csv" # Имя файла (с расширением)
 #   class_column = "Grade"  # Целевая колонка
@@ -333,6 +338,9 @@ if __name__ == "__main__":
         **({"ignored_columns": locals().get('ignored_columns', [])}),  # Условное добавление ignored_columns с проверкой на существование и использованием пустого списка как значения по умолчанию
         **({"significant_digits": locals().get('significant_digits')} if 'significant_digits' in locals() else {}),  # Условное добавление significant_digits с проверкой на существование
         **({"max_rows_per_class": locals().get('max_rows_per_class')} if 'max_rows_per_class' in locals() else {}),  # Условное добавление max_rows_per_class с проверкой на существование
+        "percent_edu": percent_edu,
+        "percent_test": percent_test,
+        "percent_correct": percent_correct,
     }
 
     # Вызов функции с использованием распаковки словаря аргументов
