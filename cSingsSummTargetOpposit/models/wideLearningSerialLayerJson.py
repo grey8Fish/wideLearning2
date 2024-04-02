@@ -3,6 +3,7 @@ import time
 import numpy as np
 import csv
 from DataLoader import DataLoader
+import json
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
@@ -209,6 +210,8 @@ file_names = ['outputGender\\gender_classification_v7_0_part0_20240325124654.csv
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 
+output = []
+
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
 wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
 wlsl.setColumnName(data_loader.get_column_names())
@@ -293,6 +296,20 @@ while nn >= 2:
 	print(wlsl.previousWeights, sep=', ')
 	print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryRight])
 	
+	#Блок сохранения JSON
+	output_data = {
+    "timestamp": local_time,
+    "threshold_left": thresholdLeft,
+    "threshold_right": thresholdRight,
+    "category_left": wlsl.classesName[categoryLeft],
+    "category_right": wlsl.classesName[categoryRight],
+    "previous_weights": wlsl.previousWeights.tolist(),
+    "cut_off_left": countCufOffLeft,
+    "cut_off_right": countCutOffRight,
+    "instances_left": wlsl.countInstancesEachClassTraining[categoryLeft],
+    "instances_right": wlsl.countInstancesEachClassTraining[categoryRight]
+	}
+	output.append(output_data)
 
 	wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
 	wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
@@ -306,3 +323,8 @@ while nn >= 2:
 	#wlsl.print_inputsClassTraining()
 
 qq = 9.5
+
+output_file_path = 'output/wideLearningSerialLayer_output.json'
+with open(output_file_path, 'w') as json_file:
+    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
+print("Результат сохранен в", output_file_path)
