@@ -20,7 +20,7 @@ def calcDistanceMinus(miNoTarget, categorySpecified, instanMax, ordCount, aClass
     return distanceCutOffPrev
 def calcDistancePlus(maNoTarget, categorySpecified, instanMax, ordCount, aClasses):
     '''получает максимум скалярного произведения, номер целевой категории, количество экземпляров
-     в самом объемном классе, количество ординат и матрицу аргументов по классам
+     в самом объемном классе, количество ординат и матрицу аргументов поклассам
     возвращает минимальное расстояние до положительной стенки коридора'''
     distanceCutOffPrev = maNoTarget
     distanceCutOffCurr = maNoTarget

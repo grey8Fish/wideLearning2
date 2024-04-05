@@ -1,0 +1,18 @@
+ Том в устройстве D имеет метку work
+ Серийный номер тома: CE72-E34F
+
+ Содержимое папки D:\DoctorDegree\wideLearning2\cSingsSummTargetOpposit\outputApple
+
+28.03.2024  10:38    <DIR>          .
+28.03.2024  10:38    <DIR>          ..
+27.03.2024  20:23             4 439 apple_quality_0_part0_20240327202359.csv
+27.03.2024  20:23             4 400 apple_quality_0_part1_20240327202359.csv
+27.03.2024  20:23             4 425 apple_quality_0_part2_20240327202359.csv
+27.03.2024  20:23             4 401 apple_quality_1_part0_20240327202359.csv
+27.03.2024  20:23             4 417 apple_quality_1_part1_20240327202359.csv
+27.03.2024  20:23             4 420 apple_quality_1_part2_20240327202359.csv
+27.03.2024  20:23           173 280 apple_quality_20240327202359.csv
+27.03.2024  20:23                29 mapping_apple_quality_Quality.csv
+28.03.2024  10:38                 0 nameFiles.txt
+               9 файлов        199 811 байт
+               2 папок  2 248 931 971 072 байт свободно
