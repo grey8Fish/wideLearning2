@@ -3,22 +3,35 @@ import time
 import numpy as np
 import csv
 from DataLoader import DataLoader
-import json
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
 		self.maxInstance = maxInst		#Удвоенное максимальное количество экземпляров выборки
 		self.countClasses = coClasses	#количество классов
 		self.sizeVector = siVector		#длина вектора весов / количество столбцов выборки
-		self.currentWeights = np.zeros(siVector, dtype=int)		#текущий вектор весов
-		self.previousWeights = np.zeros(siVector, dtype=int)		#предыдущий вектор весов
-		#self.bestWeights = np.zeros(10, siVector+1, dtype=int)	#10 лучших весов, в последнем столбце количество отсеченных
+		self.currentWeightsInit = np.zeros(siVector, dtype=int)		#текущий вектор весов первоначальный
+		self.previousWeightsInit = np.zeros(siVector, dtype=int)	#предыдущий вектор весов первоначальный
+		self.currentWeightsRefined = np.zeros(siVector, dtype=int)		#текущий вектор весов уточненный
+		self.previousWeightsRefined = np.zeros(siVector, dtype=int)	#предыдущий вектор весов уточненный
+		self.numberBest =			10
+		self.bestWeights = np.zeros((10, siVector+9), dtype=int)	#10 лучших весов, в последнем столбце количество отсеченных
 		self.countInstancesEachClassCorrection = np.zeros(coClasses, dtype=int)	#количество экземпляров в каждом классе корректирующей выборки
 		self.countInstancesEachClassTraining = np.zeros(coClasses, dtype=int)	#количество экземпляров в каждом классе обучающей выборки
 		self.columnName = None		#имена столбцов
 		self.classesName = None		#имена классов
 		self.inputsClassCorrection = np.zeros((coClasses, maxInst, siVector+2), dtype=int)	#входные экземпляры корректирующей выборки
-		self.inputsClassTraining = np.zeros((coClasses, maxInst, siVector+2), dtype=int)		#входные экземпляры обучающей выборки
+		self.inputsClassTraining = np.zeros((coClasses, maxInst, siVector+2), dtype=int)	#входные экземпляры обучающей выборки
+		self.vectorDeltasCurr = np.zeros(siVector, dtype=int)#вектора поправок весов 
+		self.vectorDeltasPrev = np.zeros(siVector, dtype=int)#в процедурах уточнения
+	#Обнуление массива лучших весов
+	def zeroingBestWeights(self):
+		qq = 0 
+		while qq < self.numberBest:
+			ww = 0
+			while ww < (self.sizeVector + 9):
+				self.bestWeights[qq][ww] = 0
+				ww += 1
+			qq += 1
 	#Вернуть 3-х мерную матрицу экземпляров обучающей выборки
 	def getInputsClassTraining(self):
 		return self.inputsClassTraining
@@ -55,7 +68,6 @@ class wideLearningSerialLayer:
 				self.inputsClassTraining[yy][uu][self.sizeVector+1] = 0
 				uu += 1
 			yy += 1
-
 	#Определить целевую и противоположную категории
 	def getMinMaxScalarMul(self):
 		yy = 0
@@ -83,6 +95,7 @@ class wideLearningSerialLayer:
 		return opMin, taMax
 	#Определить максимальное значение скалярного произведения в не целевых категориях
 	def calcNoTarMax(self, tarCate):
+		noTarMax = 0#Если все экземпляры уже отсечены
 		yy = 0
 		while yy < self.countClasses:
 			if yy == tarCate:
@@ -105,6 +118,7 @@ class wideLearningSerialLayer:
 		return noTarMax
 	#Определить минимальное значение скалярного произведения в не противоположных категориях
 	def calcNoOppMin(self, oppCate):
+		noOppMin = 0#Если все экземпляры уже отсечены
 		yy = 0
 		while yy < self.countClasses:
 			if yy == oppCate:
@@ -113,7 +127,6 @@ class wideLearningSerialLayer:
 			if self.countInstancesEachClassTraining[yy] != 0:
 				noOppMin = self.inputsClassTraining[yy][0][self.sizeVector+1]
 			yy += 1
-		#noOppMin = 0#из предидущей функции аналогично
 		yy = 0
 		while yy < self.countClasses:
 			if yy == oppCate:
@@ -135,21 +148,25 @@ class wideLearningSerialLayer:
 				self.inputsClassTraining[yy][uu][self.sizeVector+2] = 0
 				uu += 1
 			yy += 1
-
 	#Установить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
 	def setColCutOffSignTarget(self, tCat, noTaMax):
-#	def setColCutOffSignTarget(self, tCat, noTaMax, bb):
-		behindWall = noTaMax
+		behindWall = 0
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[tCat]:
 			if noTaMax < self.inputsClassTraining[tCat][uu][self.sizeVector+1]:
 				self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 1
-				behindWall = self.inputsClassTraining[tCat][uu][self.sizeVector+1]
+			else:
+				self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 0
 			uu += 1
 		while uu < self.maxInstance:
 			self.inputsClassTraining[tCat][uu][self.sizeVector+2] = 3
 			uu += 1
 		uu = 0
+		while uu < self.countInstancesEachClassTraining[tCat]:
+			if self.inputsClassTraining[tCat][uu][self.sizeVector+2] == 1:# and (behindWall > self.inputsClassTraining[tCat][uu][self.sizeVector+1]):
+				behindWall = self.inputsClassTraining[tCat][uu][self.sizeVector+1]
+				break
+			uu += 1
 		while uu < self.countInstancesEachClassTraining[tCat]:
 			if (self.inputsClassTraining[tCat][uu][self.sizeVector+2] == 1) and (behindWall > self.inputsClassTraining[tCat][uu][self.sizeVector+1]):
 				behindWall = self.inputsClassTraining[tCat][uu][self.sizeVector+1]
@@ -166,17 +183,23 @@ class wideLearningSerialLayer:
 		return yy
 	#Установить в 2 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
 	def setColCutOffSignOpposit(self, oCat, noOpMin):
-		behindWall = noOpMin
+		behindWall = 0
 		uu = 0
 		while uu < self.countInstancesEachClassTraining[oCat]:
 			if noOpMin > self.inputsClassTraining[oCat][uu][self.sizeVector+1]:
 				self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 2
-				behindWall = self.inputsClassTraining[oCat][uu][self.sizeVector+1]
+			else:
+				self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 0
 			uu += 1
 		while uu < self.maxInstance:
 			self.inputsClassTraining[oCat][uu][self.sizeVector+2] = 3
 			uu +=1
 		uu = 0
+		while uu < self.countInstancesEachClassTraining[oCat]:
+			if self.inputsClassTraining[oCat][uu][self.sizeVector+2] == 2:# and (behindWall < self.inputsClassTraining[oCat][uu][self.sizeVector+1]):
+				behindWall = self.inputsClassTraining[oCat][uu][self.sizeVector+1]
+				break
+			uu += 1
 		while uu < self.countInstancesEachClassTraining[oCat]:
 			if (self.inputsClassTraining[oCat][uu][self.sizeVector+2] == 2) and (behindWall < self.inputsClassTraining[oCat][uu][self.sizeVector+1]):
 				behindWall = self.inputsClassTraining[oCat][uu][self.sizeVector+1]
@@ -197,21 +220,148 @@ class wideLearningSerialLayer:
 		a = a[a[:,-1].argsort()]
 		print(a)'''
 		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
-		#qq = 9
+	
+	#Градиентный спуск сканированием, наивный вариант
+	def  gradientDescentScanning(self, oppoCat, noOppoMin, targCat, noTargMax, cutOffOppo, cutOffTarg):
+		oppoMax = self.setColCutOffSignOpposit(oppoCat, noOppoMin)
+		targMin = self.setColCutOffSignTarget(targCat, noTargMax)
+		if((noOppoMin - oppoMax) < (targMin - noTargMax)):
+			distMinPrev = noOppoMin - oppoMax
+		else:
+			distMinPrev = targMin - noTargMax
+		distMinCurr = distMinPrev
+		thresholdOppo = (noOppoMin + oppoMax) // 2
+		thresholdTarg = (targMin + noTargMax) // 2
+		self.previousWeightsRefined = self.previousWeightsInit.copy()
+		stepSize = 1
+		cuOffOppo = cutOffOppo
+		cuOffTarg = cutOffTarg
+		countCutOffCurr = countCutOffPrev = cutOffOppo + cutOffTarg
+		while True:
+			qq = 0
+			while qq < self.sizeVector:#шаг в плюс
+				self.vectorDeltasCurr -= self.vectorDeltasCurr
+				self.vectorDeltasCurr[qq] += stepSize
+				self.currentWeightsRefined = self.previousWeightsRefined.copy()
+				self.currentWeightsRefined += self.vectorDeltasCurr
+				self.initColScalarMul(self.currentWeightsRefined)			
+				nTargMax = self.calcNoTarMax(targCat)					#расчет количества отсеченных
+				countCutOffTarget = self.calcCutOffSignTarget(targCat, nTargMax)
+				nOppoMin = self.calcNoOppMin(oppoCat)
+				countCufOffOpposit = self.calcCutOffSignOpposit(oppoCat, nOppoMin)
+				countCutOffCurr = countCutOffTarget + countCufOffOpposit#расчет количества отсеченных
+				oppoMax = self.setColCutOffSignOpposit(oppoCat, nOppoMin)	#расчет расстояния
+				targMin = self.setColCutOffSignTarget(targCat, nTargMax)
+				if((nOppoMin - oppoMax) < (targMin - nTargMax)):
+					distMinCurr = nOppoMin - oppoMax
+				else:
+					distMinCurr = targMin - nTargMax						#расчет расстояния
+				if (countCutOffPrev < countCutOffCurr): #количествo увеличилось
+					countCutOffPrev = countCutOffCurr
+					cuOffOppo = countCufOffOpposit
+					cuOffTarg = countCutOffTarget
+					distMinPrev = distMinCurr
+					thresholdOppo = (nOppoMin + oppoMax) // 2
+					thresholdTarg = (targMin + nTargMax) // 2
+				elif countCutOffPrev > countCutOffCurr:	#количествo уменьшилось
+					self.vectorDeltasCurr[qq] -= stepSize
+				elif distMinPrev > distMinCurr:		#количествo не изменилось, расстояние уменьшилось
+					distMinPrev = distMinCurr
+					thresholdOppo = (nOppoMin + oppoMax) // 2
+					thresholdTarg = (targMin + nTargMax) // 2
+				else:								#расстояние увеличилось
+					self.vectorDeltasCurr[qq] -= stepSize 
+				self.vectorDeltasPrev += self.vectorDeltasCurr
+				qq += 1
+			qq = 0
+			while qq < self.sizeVector:#шаг в минус
+				self.vectorDeltasCurr -= self.vectorDeltasCurr
+				self.vectorDeltasCurr[qq] -= stepSize
+				self.currentWeightsRefined = self.previousWeightsRefined.copy()
+				self.currentWeightsRefined += self.vectorDeltasCurr
+				self.initColScalarMul(self.currentWeightsRefined)			
+				nTargMax = self.calcNoTarMax(targCat)					#расчет количества отсеченных
+				countCutOffTarget = self.calcCutOffSignTarget(targCat, nTargMax)
+				nOppoMin = self.calcNoOppMin(oppoCat)
+				countCufOffOpposit = self.calcCutOffSignOpposit(oppoCat, nOppoMin)
+				countCutOffCurr = countCutOffTarget + countCufOffOpposit#расчет количества отсеченных
+				oppoMax = self.setColCutOffSignOpposit(oppoCat, nOppoMin)	#расчет расстояния
+				targMin = self.setColCutOffSignTarget(targCat, nTargMax)
+				if((nOppoMin - oppoMax) < (targMin - nTargMax)):
+					distMinCurr = nOppoMin - oppoMax
+				else:
+					distMinCurr = targMin - nTargMax						#расчет расстояния
+				if (countCutOffPrev < countCutOffCurr): #количествo увеличилось
+					countCutOffPrev = countCutOffCurr
+					cuOffOppo = countCufOffOpposit
+					cuOffTarg = countCutOffTarget
+					distMinPrev = distMinCurr
+					thresholdOppo = (nOppoMin + oppoMax) // 2
+					thresholdTarg = (targMin + nTargMax) // 2
+				elif countCutOffPrev > countCutOffCurr:	#количествo уменьшилось
+					self.vectorDeltasCurr[qq] += stepSize
+				elif distMinPrev > distMinCurr:		#количествo не изменилось, расстояние уменьшилось
+					distMinPrev = distMinCurr
+					thresholdOppo = (nOppoMin + oppoMax) // 2
+					thresholdTarg = (targMin + nTargMax) // 2
+				else:								#расстояние увеличилось
+					self.vectorDeltasCurr[qq] += stepSize 
+				self.vectorDeltasPrev += self.vectorDeltasCurr
+				qq += 1
+			qq = 0
+			ww = 0
+			while qq < self.sizeVector:
+				ww += abs(self.vectorDeltasPrev[qq])
+				qq += 1
+			if ww == 0:
+				break
+			self.previousWeightsRefined += self.vectorDeltasPrev
+			self.vectorDeltasPrev -= self.vectorDeltasPrev
+			stepSize *= 2
+		qq = 1
+		ww = 0
+		minEE = self.bestWeights[ww][-1]	#
+		while qq < self.numberBest:
+			if minEE > self.bestWeights[qq][-1]: 
+				minEE = self.bestWeights[qq][-1]
+				ww = qq
+			qq += 1
+		self.initColScalarMul(self.previousWeightsRefined)			
+		nTargMax = self.calcNoTarMax(targCat)					#расчет количества отсеченных
+		countCutOffTarget = self.calcCutOffSignTarget(targCat, nTargMax)
+		nOppoMin = self.calcNoOppMin(oppoCat)
+		countCufOffOpposit = self.calcCutOffSignOpposit(oppoCat, nOppoMin)
+		countCutOffCurr = countCutOffTarget + countCufOffOpposit#расчет количества отсеченных
+		oppoMax = self.setColCutOffSignOpposit(oppoCat, nOppoMin)	#расчет расстояния
+		targMin = self.setColCutOffSignTarget(targCat, nTargMax)
+		thresholdOppo = (nOppoMin + oppoMax) // 2
+		thresholdTarg = (targMin + nTargMax) // 2
+
+		self.bestWeights[ww][:self.sizeVector] = self.previousWeightsRefined.copy()
+		self.bestWeights[ww][-1] = countCutOffPrev	#Сумма отсеченных -1
+		self.bestWeights[ww][-2] = self.countInstancesEachClassTraining[targCat]	#Всего справа -2
+		self.bestWeights[ww][-3] = cuOffTarg 	#Отсеченных справа -3
+		self.bestWeights[ww][-4] = thresholdTarg	#Правый порог -4
+		self.bestWeights[ww][-5] = targCat	#Правый класс -5
+		self.bestWeights[ww][-6] = self.countInstancesEachClassTraining[oppoCat]	#Всего слева -6
+		self.bestWeights[ww][-7] = cuOffOppo 	#Отсеченных слева -7
+		self.bestWeights[ww][-8] = thresholdOppo	#Левый порог -8
+		self.bestWeights[ww][-9] = oppoCat	#Левый класс -9
+
+
+
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 #file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
 #file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']
 #file_names = ['HotelReservations_0_part0_20240319174159.csv','HotelReservations_1_part0_20240319174159.csv']
+#file_names = ['outputApple\\apple_quality_0_part0_20240328104334.csv','outputApple\\apple_quality_1_part0_20240328104334.csv']
 file_names = ['outputGender\\gender_classification_v7_0_part0_20240325124654.csv','outputGender\\gender_classification_v7_1_part0_20240325124654.csv']
 			#'outputCancer\\cancer_prediction_dataset_0_part0_20240325154122.csv','outputCancer\\cancer_prediction_dataset_1_part0_20240325154122.csv'
 			#'outputGender\\gender_classification_v7_0_part0_20240325124654.csv','outputGender\\gender_classification_v7_1_part0_20240325124654.csv'	
 			  #'outputWineQT\\WineQT_5_part0_20240322162654.csv','outputWineQT\\WineQT_6_part0_20240322162654.csv','outputWineQT\\WineQT_7_part0_20240322162654.csv','outputWineQT\\WineQT_4_part0_20240322162654.csv','outputWineQT\\WineQT_8_part0_20240322162654.csv','outputWineQT\\WineQT_3_part0_20240322162654.csv'
 data_loader = DataLoader(file_names)
 data_loader.load_data()
-
-#Для JSON
-output = []
 
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
 wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
@@ -237,10 +387,10 @@ while nn >= 2:
 					tt = 0 
 					while tt < wlsl.sizeVector:
 						#первоначальное приближение вектора весов 
-						wlsl.currentWeights[tt] = wlsl.inputsClassTraining[qq][ww][tt] - wlsl.inputsClassTraining[ee][rr][tt]
+						wlsl.currentWeightsInit[tt] = wlsl.inputsClassTraining[qq][ww][tt] - wlsl.inputsClassTraining[ee][rr][tt]
 						tt += 1
 					#Инициализировать столбец «значение скалярного произведения»
-					wlsl.initColScalarMul(wlsl.currentWeights)
+					wlsl.initColScalarMul(wlsl.currentWeightsInit)
 					#Определить целевую и противоположную категории
 					mm = wlsl.getMinMaxScalarMul()
 					opCat = int(mm[0])
@@ -258,14 +408,15 @@ while nn >= 2:
 					countCutOffCurrent = countCutOffTarget + countCufOffOpposit
 					if countCutOffPrev < countCutOffCurrent:
 						countCutOffPrev = countCutOffCurrent
-						wlsl.previousWeights = wlsl.currentWeights.copy()
-						countCutOffRight = countCutOffTarget
-						categoryRight = taCat
+						wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
+						#countCutOffRight = countCutOffTarget
+						#categoryRight = taCat
 						#print(noTargMax)
-						maxNoRight = noTargMax
-						countCufOffLeft = countCufOffOpposit
-						categoryLeft = opCat
-						minNoLeft = noOppoMin
+						#maxNoRight = noTargMax
+						#countCufOffLeft = countCufOffOpposit
+						#categoryLeft = opCat
+						#minNoLeft = noOppoMin
+						wlsl.gradientDescentScanning(opCat, noOppoMin, taCat, noTargMax, countCufOffOpposit, countCutOffTarget)
 					rr += 1
 					#ff += 1
 				ee += 1
@@ -273,59 +424,48 @@ while nn >= 2:
 			ww += 1
 		qq += 1
 	
+	qq = 1										#Сумма отсеченных	-1 Всего справа -2
+	ww = 0										#Отсеченных справа	-3
+	maxEE = wlsl.bestWeights[ww][-1]			#Правый порог		-4
+	while qq < wlsl.numberBest:					#Правый класс		-5
+		if maxEE < wlsl.bestWeights[qq][-1]:	#Всего слева		-6
+			maxEE = wlsl.bestWeights[qq][-1]	#Отсеченных слева	-7
+			ww = qq								#Левый порог		-8
+		qq += 1									#Левый класс		-9
+	print(wlsl.bestWeights[ww][-8], wlsl.bestWeights[ww][-4],sep=', ')
+	print(wlsl.classesName[wlsl.bestWeights[ww][-9]], wlsl.classesName[wlsl.bestWeights[ww][-5]], sep=', ')
+	print(wlsl.bestWeights[ww][:7], sep=', ')
+	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
+
 	#Инициализировать столбец «значение скалярного произведения»
-	wlsl.initColScalarMul(wlsl.previousWeights)
-	#становить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
-	thresholdRight = wlsl.setColCutOffSignTarget(categoryRight, maxNoRight)
-	#thresholdRight = wlsl.setColCutOffSignTarget(categoryRight, maxNoRight, bb)
-	#thresholdRight = (thresholdRight + maxNoRight) // 2
-	thresholdRight = (thresholdRight // 2)+ (maxNoRight // 2)
-	#Сортировать указанную категорию по возрастанию «признака отсечённости»
-	wlsl.sortCategoryCutOff(categoryRight)
-	#print(wlsl.inputsClassTraining[categoryRight])
+	wlsl.initColScalarMul(wlsl.bestWeights[ww][:7])
 
+	#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
+	noOppoMin = wlsl.calcNoOppMin(wlsl.bestWeights[ww][-9])
 	#Установить в 2 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
-	thresholdLeft = wlsl.setColCutOffSignOpposit(categoryLeft, minNoLeft)
-	#thresholdLeft = (thresholdLeft + minNoLeft) // 2
-	thresholdLeft = (thresholdLeft //2) + (minNoLeft // 2)
+	wlsl.setColCutOffSignOpposit(wlsl.bestWeights[ww][-9], noOppoMin)
 	#Сортировать указанную категорию по возрастанию «признака отсечённости»
-	wlsl.sortCategoryCutOff(categoryLeft)
-	#print(wlsl.inputsClassTraining[categoryLeft])
-	
-	print(thresholdLeft, thresholdRight, sep=', ')
-	print(wlsl.classesName[categoryLeft], wlsl.classesName[categoryRight], sep=', ')
-	print(wlsl.previousWeights, sep=', ')
-	print(countCufOffLeft,' out of ',wlsl.countInstancesEachClassTraining[categoryLeft],countCutOffRight,' out of ',wlsl.countInstancesEachClassTraining[categoryRight])
-	
-	#Блок сохранения JSON
-	output_data = {
-    "timestamp": local_time,
-    "threshold_left": thresholdLeft,
-    "threshold_right": thresholdRight,
-    "category_left": wlsl.classesName[categoryLeft],
-    "category_right": wlsl.classesName[categoryRight],
-    "previous_weights": wlsl.previousWeights.tolist(),
-    "cut_off_left": countCufOffLeft,
-    "cut_off_right": countCutOffRight,
-    "instances_left": wlsl.countInstancesEachClassTraining[categoryLeft],
-    "instances_right": wlsl.countInstancesEachClassTraining[categoryRight]
-	}
-	output.append(output_data)
+	wlsl.sortCategoryCutOff(wlsl.bestWeights[ww][-9])
+	#Усечение указанных классов
+	wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]] -= wlsl.bestWeights[ww][-7]
 
-	wlsl.countInstancesEachClassTraining[categoryLeft] -= countCufOffLeft
-	wlsl.countInstancesEachClassTraining[categoryRight] -= countCutOffRight
+	#Определить максимальное значение скалярного произведения в НЕ целевых категориях
+	noTargMax = wlsl.calcNoTarMax(wlsl.bestWeights[ww][-5])
+	#Установить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
+	wlsl.setColCutOffSignTarget(wlsl.bestWeights[ww][-5], noTargMax)
+	#Сортировать указанную категорию по возрастанию «признака отсечённости»
+	wlsl.sortCategoryCutOff(wlsl.bestWeights[ww][-5])
+	#Усечение указанных классов
+	wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]] -= wlsl.bestWeights[ww][-3]
+
+	#Обнуление массива лучших весов
+	wlsl.zeroingBestWeights()
+
 	nn = 0
 	rr = 0
 	while rr < wlsl.countClasses:
 		if wlsl.countInstancesEachClassTraining[rr] > 0:
 			nn += 1
 		rr += 1
-	#вывод inputsClassTraining
-	#wlsl.print_inputsClassTraining()
 
 qq = 9.5
-
-output_file_path = 'output/wideLearningSerialLayer_output.json'
-with open(output_file_path, 'w') as json_file:
-    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
-print("Результат сохранен в", output_file_path)
