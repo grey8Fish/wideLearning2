@@ -3,6 +3,7 @@ import time
 import numpy as np
 import csv
 from DataLoader import DataLoader
+import json
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
@@ -52,13 +53,9 @@ class wideLearningSerialLayer:
 		return self.classesName		
 	#Инициализировать столбец «значение скалярного произведения»
 	def initColScalarMul(self, curWeights):
-		yy = 0
-		while yy < self.countClasses:
-			uu = 0 
-			while uu < self.countInstancesEachClassTraining[yy]:
-				self.inputsClassTraining[yy][uu][self.sizeVector+1] = np.dot(self.inputsClassTraining[yy, uu, :self.sizeVector], curWeights)
-				uu += 1
-			yy += 1
+		for yy in range(self.countClasses):
+			self.inputsClassTraining[yy, :, self.sizeVector+1] = np.dot(self.inputsClassTraining[yy, :, :self.sizeVector], curWeights)
+
 	#Обнулить столбец «значение скалярного произведения»
 	def zerosColScalarMul(self):
 		yy = 0
@@ -363,6 +360,9 @@ file_names = ['outputGender\\gender_classification_v7_0_part0_20240325124654.csv
 data_loader = DataLoader(file_names)
 data_loader.load_data()
 
+#Для JSON
+output = []
+
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
 wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
 wlsl.setColumnName(data_loader.get_column_names())
@@ -437,6 +437,23 @@ while nn >= 2:
 	print(wlsl.bestWeights[ww][:7], sep=', ')
 	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
 
+	#Блок сохранения JSON
+	output_data = {
+    "timestamp": local_time,
+    "threshold_left": wlsl.bestWeights[ww][-8],
+    "threshold_right": wlsl.bestWeights[ww][-4],
+    "category_left": wlsl.classesName[wlsl.bestWeights[ww][-9]],
+    "category_right": wlsl.classesName[wlsl.bestWeights[ww][-5]],
+    "previous_weights": wlsl.bestWeights[ww][:7].tolist(), # Здесь у казывать размер вектора
+    "cut_off_left": wlsl.bestWeights[ww][-7],
+    "cut_off_right": wlsl.bestWeights[ww][-3],
+    "instances_left": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],
+    "instances_right": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]]
+	}
+	#print(f"Cut off left: {output_data['cut_off_left']} out of {output_data['instances_left']}")
+	#print(f"Cut off right: {output_data['cut_off_right']} out of {output_data['instances_right']}\n")
+	output.append(output_data)
+
 	#Инициализировать столбец «значение скалярного произведения»
 	wlsl.initColScalarMul(wlsl.bestWeights[ww][:7])
 
@@ -469,3 +486,8 @@ while nn >= 2:
 		rr += 1
 
 qq = 9.5
+
+output_file_path = 'output/wideLearningSerialLayer_output.json'
+with open(output_file_path, 'w') as json_file:
+    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
+print("Результат сохранен в", output_file_path)
