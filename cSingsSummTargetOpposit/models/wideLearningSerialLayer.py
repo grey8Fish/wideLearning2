@@ -439,6 +439,7 @@ while nn >= 2:
 
 	#Блок сохранения JSON
 	output_data = {
+	"neuron_number": rr,
     "timestamp": local_time,
     "threshold_left": wlsl.bestWeights[ww][-8],
     "threshold_right": wlsl.bestWeights[ww][-4],
