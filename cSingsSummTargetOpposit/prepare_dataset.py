@@ -1,6 +1,7 @@
 ﻿#Подготовка датасета для widelearning
 #Блок настройки в конце программы (if __name__ == "__main__":)
 
+from asyncio import get_event_loop
 import math
 import numpy as np
 import pandas as pd
@@ -167,7 +168,7 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
     for column in df.columns:
         if column not in columns_to_exclude:
             # Если задано макс. количество значащих цифр, округляем
-            if significant_digits is not None:
+            if significant_digits is not None and get_decimal_places(df[column]) > 0:
                 df[column] = df[column].apply(lambda x: round(x, significant_digits - int(math.floor(math.log10(abs(x)))) - 1) if x != 0 else 0)
                 # Шаг 2: Умножение на 10^n, где n - количество знаков после запятой
                 df[column] *= 10**significant_digits
@@ -313,16 +314,16 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "gender_class_v7.csv"     # Имя файла (с расширением)
-    class_column = "gender"            # Целевая колонка
+    file_name = "cancer_prediction_dataset.csv"     # Имя файла (с расширением)
+    class_column = "Cancer"            # Целевая колонка
     #instance_column = "A_id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    significant_digits = 2             # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
-    #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
+    significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
-    percent_edu = 12
-    percent_test = 12
-    percent_correct = 76
+    percent_edu = 60        
+    percent_test = 30
+    percent_correct = 10 
 
    
 #   file_name = "milknew.csv" # Имя файла (с расширением)
