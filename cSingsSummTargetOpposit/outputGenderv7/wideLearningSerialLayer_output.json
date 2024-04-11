@@ -1,0 +1,86 @@
+[
+    {
+        "neuron_number": 200,
+        "timestamp": "Mon Apr  8 10:52:36 2024",
+        "threshold_left": -878,
+        "threshold_right": 496,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [
+            11,
+            52,
+            -4,
+            40,
+            44,
+            40,
+            40
+        ],
+        "cut_off_left": 188,
+        "cut_off_right": 186,
+        "instances_left": 200,
+        "instances_right": 199
+    },
+    {
+        "neuron_number": 12,
+        "timestamp": "Mon Apr  8 10:53:52 2024",
+        "threshold_left": -880,
+        "threshold_right": 980,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [
+            3,
+            24,
+            16,
+            0,
+            0,
+            0,
+            -40
+        ],
+        "cut_off_left": 6,
+        "cut_off_right": 4,
+        "instances_left": 12,
+        "instances_right": 13
+    },
+    {
+        "neuron_number": 6,
+        "timestamp": "Mon Apr  8 10:53:52 2024",
+        "threshold_left": 7,
+        "threshold_right": 109,
+        "category_left": "0",
+        "category_right": "0",
+        "previous_weights": [
+            0,
+            -14,
+            1,
+            0,
+            1,
+            1,
+            0
+        ],
+        "cut_off_left": 3,
+        "cut_off_right": 5,
+        "instances_left": 9,
+        "instances_right": 9
+    },
+    {
+        "neuron_number": 6,
+        "timestamp": "Mon Apr  8 10:53:52 2024",
+        "threshold_left": 2304,
+        "threshold_right": 2304,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [
+            62,
+            25,
+            -20,
+            0,
+            -9,
+            40,
+            0
+        ],
+        "cut_off_left": 6,
+        "cut_off_right": 1,
+        "instances_left": 6,
+        "instances_right": 1
+    }
+]
