@@ -361,7 +361,7 @@ np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 #file_names = ['outputApple4\\apple_quality_class_0_edu_20240406125611.csv','outputApple4\\apple_quality_class_1_edu_20240406125611.csv']
 file_names = ['outputGenderV9\\gender_class_v7_class_0_edu_20240408170208.csv','outputGenderV9\\gender_class_v7_class_1_edu_20240408170208.csv']
 data_loader = DataLoader(file_names)
-data_loader.load_data()
+data_loader.load_data() 
 
 #Для JSON
 output = []

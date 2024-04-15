@@ -1,0 +1,151 @@
+[
+    {
+        "neuron_number": 1,
+        "timestamp": "Tue Apr  9 11:08:35 2024",
+        "threshold_left": -180700,
+        "threshold_right": 238258,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [ 285, 289, 559, 559, 500, 504, 500],
+        "cut_off_left": 260,
+        "cut_off_right": 248,
+        "instances_left": 299,
+        "instances_right": 300
+    },
+    {
+        "neuron_number": 2,
+        "timestamp": "Tue Apr  9 11:13:02 2024",
+        "threshold_left": -270131,
+        "threshold_right": 25948,
+        "category_left": "0",
+        "category_right": "0",
+        "previous_weights": [ -495, -92, -89, 5, 500, 0, 6],
+        "cut_off_left": 2,
+        "cut_off_right": 27,
+        "instances_left": 52,
+        "instances_right": 52
+    },
+    {
+        "neuron_number": 3,
+        "timestamp": "Tue Apr  9 11:13:55 2024",
+        "threshold_left": -300224,
+        "threshold_right": 268976,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [0, 398, 152, 504, 8, -500, 3],
+        "cut_off_left": 7,
+        "cut_off_right": 3,
+        "instances_left": 39,
+        "instances_right": 23
+    },
+    {
+        "neuron_number": 4,
+        "timestamp": "Tue Apr  9 11:14:09 2024",
+        "threshold_left": -119473,
+        "threshold_right": 146154,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [ 2, -80, -46, 3, 13, 8, 500],
+        "cut_off_left": 9,
+        "cut_off_right": 1,
+        "instances_left": 32,
+        "instances_right": 20
+    },
+    {
+        "neuron_number": 5,
+        "timestamp": "Tue Apr  9 11:14:28 2024",
+        "threshold_left": -166072,
+        "threshold_right": 158075,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [ 0, -100, 378, -500, 1, 2, 0],
+        "cut_off_left": 6,
+        "cut_off_right": 4,
+        "instances_left": 23,
+        "instances_right": 19
+    },
+    {
+        "neuron_number": 17,
+        "timestamp": "Tue Apr  9 11:14:40 2024",
+        "threshold_left": -123500,
+        "threshold_right": 137363,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [
+            3,
+            -100,
+            -74,
+            0,
+            0,
+            500,
+            0
+        ],
+        "cut_off_left": 6,
+        "cut_off_right": 5,
+        "instances_left": 17,
+        "instances_right": 15
+    },
+    {
+        "neuron_number": 11,
+        "timestamp": "Tue Apr  9 11:14:50 2024",
+        "threshold_left": -231400,
+        "threshold_right": 13875,
+        "category_left": "1",
+        "category_right": "0",
+        "previous_weights": [
+            0,
+            93,
+            -150,
+            8,
+            0,
+            -500,
+            500
+        ],
+        "cut_off_left": 3,
+        "cut_off_right": 6,
+        "instances_left": 11,
+        "instances_right": 10
+    },
+    {
+        "neuron_number": 8,
+        "timestamp": "Tue Apr  9 11:14:55 2024",
+        "threshold_left": -1013,
+        "threshold_right": 4114,
+        "category_left": "1",
+        "category_right": "1",
+        "previous_weights": [
+            1,
+            0,
+            -23,
+            0,
+            -4,
+            0,
+            0
+        ],
+        "cut_off_left": 4,
+        "cut_off_right": 1,
+        "instances_left": 8,
+        "instances_right": 8
+    },
+    {
+        "neuron_number": 3,
+        "timestamp": "Tue Apr  9 11:15:00 2024",
+        "threshold_left": -128129,
+        "threshold_right": 7100,
+        "category_left": "0",
+        "category_right": "0",
+        "previous_weights": [
+            -500,
+            100,
+            42,
+            0,
+            16,
+            0,
+            16
+        ],
+        "cut_off_left": 3,
+        "cut_off_right": 1,
+        "instances_left": 4,
+        "instances_right": 4
+    }
+]
