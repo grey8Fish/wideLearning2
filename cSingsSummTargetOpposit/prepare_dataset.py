@@ -236,6 +236,13 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     class_column_data = df.pop(class_column)
     df[class_column] = class_column_data
     
+    # Удаление дубликатов, исключая RowNum и class_column
+    duplicates_mask = df.drop(columns=[class_column, 'RowNum']).duplicated(keep='first')
+    num_duplicates = duplicates_mask.sum()  # Подсчет количества дубликатов (без первых уникальных вхождений)
+    if num_duplicates > 0:
+        print(f'Предупреждение: Обнаружены и удалены {num_duplicates} дубликатов.')
+    df = df[~duplicates_mask]
+
     # Сохранение результата в новый файл с меткой времени
     output_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}.csv"
     df.to_csv(os.path.join(output_folder, output_file_name), index=False)
@@ -314,10 +321,10 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "cancer_prediction_dataset.csv"     # Имя файла (с расширением)
-    class_column = "Cancer"            # Целевая колонка
+    file_name = "milknew.csv"     # Имя файла (с расширением)
+    class_column = "Grade"            # Целевая колонка
     #instance_column = "A_id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    #significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
