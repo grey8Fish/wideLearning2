@@ -85,6 +85,17 @@ def prepare_df(df, excluded_columns=None, instance_column=None):
     return df
 
 
+def remove_duplicates(df, class_column, excluded_columns=None, ignored_columns=None, instance_column=None):
+    initial_row_count = len(df)
+    columns_to_consider = df.columns.difference([class_column] + (excluded_columns or []) + (ignored_columns or []) + ([instance_column] if instance_column else []))
+    df.drop_duplicates(subset=columns_to_consider, inplace=True)
+    duplicates_count = initial_row_count - len(df)
+    if duplicates_count > 0:
+        percent_duplicates = (duplicates_count / initial_row_count) * 100
+        print(f"В исходном файле обнаружены дубликаты: {duplicates_count} строк удалено ({percent_duplicates:.2f}%)")
+    return df
+
+
 def map_df(df, file_name, output_folder, class_column):
     """
     Маппинг текстовых данных в DataFrame.
@@ -237,10 +248,12 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     df[class_column] = class_column_data
     
     # Удаление дубликатов, исключая RowNum и class_column
+    initial_row_count = len(df)
     duplicates_mask = df.drop(columns=[class_column, 'RowNum']).duplicated(keep='first')
     num_duplicates = duplicates_mask.sum()  # Подсчет количества дубликатов (без первых уникальных вхождений)
     if num_duplicates > 0:
-        print(f'Предупреждение: Обнаружены и удалены {num_duplicates} дубликатов.')
+        percent_duplicates = (num_duplicates / initial_row_count) * 100
+        print(f'В обработанной выборке обнаружены и удалены {num_duplicates} дубликатов. ({percent_duplicates:.2f}%)')
     df = df[~duplicates_mask]
 
     # Сохранение результата в новый файл с меткой времени
@@ -298,7 +311,9 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 
     # Шаг 2: Чтение файла
     df = read_file(file_name, source_folder)
-    
+    #Удаление дубликатов
+    df = remove_duplicates(df, class_column, excluded_columns, ignored_columns, instance_column)
+
     # Шаг 3: Подготовка DataFrame - удаляет ненужные колонки
     df = prepare_df(df, excluded_columns, instance_column)
     
@@ -321,11 +336,11 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "milknew.csv"     # Имя файла (с расширением)
-    class_column = "Grade"            # Целевая колонка
-    #instance_column = "A_id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    #significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
-    max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
+    file_name = "HotelReservations.csv"     # Имя файла (с расширением)
+    class_column = "booking_status"            # Целевая колонка
+    instance_column = "Booking_ID"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+    significant_digits = 2              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
     percent_edu = 60        
