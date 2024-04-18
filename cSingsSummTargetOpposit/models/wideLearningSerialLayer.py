@@ -6,6 +6,7 @@ import csv
 from DataLoader import DataLoader
 import json
 import os
+import time
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
@@ -386,6 +387,7 @@ while nn >= 2:
 	seconds = time.time()
 	local_time = time.ctime(seconds)
 	print("Местное время:", local_time)
+	start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
 	while qq < wlsl.countClasses-1:
@@ -448,9 +450,13 @@ while nn >= 2:
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
 	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
 
+	end_time = time.time()  # Конец отсчета времени
+	time_elapsed = round(end_time - start_time, 3)  # Вычисление времени выполнения
+
 	#Блок сохранения JSON
 	output_data = {
 	"neuron_number": neuron_number,
+	"time_elapsed_second": time_elapsed,
     "timestamp": local_time,
     "threshold_left": wlsl.bestWeights[ww][-8],
     "threshold_right": wlsl.bestWeights[ww][-4],
