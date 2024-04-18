@@ -388,7 +388,7 @@ while nn >= 2:
 	seconds = time.time()
 	local_time = time.ctime(seconds)
 	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-	print("Местное время:", formatted_time)
+	print("[", neuron_number, "] Местное время:", formatted_time)
 	start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
