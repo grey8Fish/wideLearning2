@@ -1,4 +1,4 @@
-import time
+#import time #отказываемся в пользу datetime
 from datetime import datetime
 from xml.etree.ElementTree import tostring
 #import sys
@@ -379,8 +379,8 @@ wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().c
 nn = 2
 neuron_number = 0
 while nn >= 2:
-	seconds = time.time()
-	local_time = time.ctime(seconds)
+	seconds = datetime.now().timestamp()
+	local_time = datetime.fromtimestamp(seconds).strftime('%a %b %d %H:%M:%S %Y')
 	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 	print("[", neuron_number, "] Местное время:", formatted_time)
 	neuron_start_time = time.time()  # Начало отсчета времени для нейрона
