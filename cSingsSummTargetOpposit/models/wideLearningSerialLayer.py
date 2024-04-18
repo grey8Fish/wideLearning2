@@ -367,6 +367,11 @@ data_loader.load_data()
 
 #Для JSON
 output = []
+# Убедимся, что каталог для сохранения файлов существует
+output_directory = 'output'
+if not os.path.exists(output_directory):
+    os.makedirs(output_directory)
+
 
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
 wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
@@ -460,7 +465,18 @@ while nn >= 2:
 	#print(f"Cut off left: {output_data['cut_off_left']} out of {output_data['instances_left']}")
 	#print(f"Cut off right: {output_data['cut_off_right']} out of {output_data['instances_right']}\n")
 	output.append(output_data)
+	
+	# Извлечение имени первого файла без расширения
+	base_file_name = os.path.splitext(os.path.basename(file_names[0]))[0]
+	# Путь к временному файлу JSON
+	temp_output_file_path = f'{output_directory}/wlsl_{base_file_name}_temp.json'
+	# Запись данных во временный JSON файл на каждом шаге
+	with open(temp_output_file_path, 'w') as temp_json_file:
+		json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
 
+	# Копирование данных из временного файла в постоянный в конце каждой итерации
+	final_output_file_path = f'{output_directory}/wlsl_{base_file_name}.json'
+	os.replace(temp_output_file_path, final_output_file_path)
 
 	#Инициализировать столбец «значение скалярного произведения»
 	wlsl.initColScalarMul(wlsl.bestWeights[ww][:wlsl.sizeVector])
@@ -496,10 +512,9 @@ while nn >= 2:
 
 qq = 9.5
 
-# Извлечение имени первого файла без расширения
-base_file_name = os.path.splitext(os.path.basename(file_names[0]))[0]
+
 # Создание пути к файлу JSON с использованием имени первого файла
-output_file_path = f'output/wlsl_{base_file_name}.json'
-with open(output_file_path, 'w') as json_file:
-    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
-print("Результат сохранен в", output_file_path)
+#output_file_path = f'output/wlsl_{base_file_name}.json'
+#with open(output_file_path, 'w') as json_file:
+#    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
+#print("Результат сохранен в", output_file_path)
