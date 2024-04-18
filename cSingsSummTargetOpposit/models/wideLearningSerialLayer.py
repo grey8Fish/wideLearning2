@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from xml.etree.ElementTree import tostring
 #import sys
 import numpy as np
@@ -386,7 +387,8 @@ neuron_number = 0
 while nn >= 2:
 	seconds = time.time()
 	local_time = time.ctime(seconds)
-	print("Местное время:", local_time)
+	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+	print("Местное время:", formatted_time)
 	start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
@@ -448,7 +450,7 @@ while nn >= 2:
 	print(wlsl.bestWeights[ww][-8], wlsl.bestWeights[ww][-4],sep=', ')
 	print(wlsl.classesName[wlsl.bestWeights[ww][-9]], wlsl.classesName[wlsl.bestWeights[ww][-5]], sep=', ')
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
-	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
+	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],'|',wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
 
 	end_time = time.time()  # Конец отсчета времени
 	time_elapsed = round(end_time - start_time, 3)  # Вычисление времени выполнения
@@ -457,7 +459,7 @@ while nn >= 2:
 	output_data = {
 	"neuron_number": neuron_number,
 	"time_elapsed_second": time_elapsed,
-    "timestamp": local_time,
+    "timestamp": formatted_time,
     "threshold_left": wlsl.bestWeights[ww][-8],
     "threshold_right": wlsl.bestWeights[ww][-4],
     "category_left": wlsl.classesName[wlsl.bestWeights[ww][-9]],
@@ -515,6 +517,7 @@ while nn >= 2:
 			nn += 1
 		rr += 1
 	neuron_number += 1
+	print()
 
 qq = 9.5
 
