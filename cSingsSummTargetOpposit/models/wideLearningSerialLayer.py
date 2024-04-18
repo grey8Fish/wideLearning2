@@ -30,13 +30,8 @@ class wideLearningSerialLayer:
 		self.vectorDeltasPrev = np.zeros(siVector, dtype=int)#в процедурах уточнения
 	#Обнуление массива лучших весов
 	def zeroingBestWeights(self):
-		qq = 0 
-		while qq < self.numberBest:
-			ww = 0
-			while ww < (self.sizeVector + 9):
-				self.bestWeights[qq][ww] = 0
-				ww += 1
-			qq += 1
+		self.bestWeights.fill(0)
+		
 	#Вернуть 3-х мерную матрицу экземпляров обучающей выборки
 	def getInputsClassTraining(self):
 		return self.inputsClassTraining
@@ -57,8 +52,7 @@ class wideLearningSerialLayer:
 		return self.classesName		
 	#Инициализировать столбец «значение скалярного произведения»
 	def initColScalarMul(self, curWeights):
-		for yy in range(self.countClasses):
-			self.inputsClassTraining[yy, :, self.sizeVector+1] = np.dot(self.inputsClassTraining[yy, :, :self.sizeVector], curWeights)
+		self.inputsClassTraining[:, :, self.sizeVector+1] = np.einsum('ijk,k->ij', self.inputsClassTraining[:, :, :self.sizeVector], curWeights)
 
 	#Обнулить столбец «значение скалярного произведения»
 	def zerosColScalarMul(self):
@@ -350,7 +344,7 @@ class wideLearningSerialLayer:
 		self.bestWeights[ww][-9] = oppoCat	#Левый класс -9
 
 
-
+start_time = datetime.now()
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
@@ -524,6 +518,11 @@ while nn >= 2:
 
 qq = 9.5
 
+#Вывод итогового времени выполнения
+#end_time = datetime.now()
+#time_delta = end_time - start_time
+#total_time = str(time_delta) 
+#print("Время выполнения:", total_time)
 
 # Создание пути к файлу JSON с использованием имени первого файла
 #output_file_path = f'output/wlsl_{base_file_name}.json'
