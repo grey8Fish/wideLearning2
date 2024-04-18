@@ -5,6 +5,7 @@ import numpy as np
 import csv
 from DataLoader import DataLoader
 import json
+import os
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
@@ -442,7 +443,6 @@ while nn >= 2:
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
 	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
 
-	print(neuron_number)
 	#Блок сохранения JSON
 	output_data = {
 	"neuron_number": neuron_number,
@@ -496,7 +496,10 @@ while nn >= 2:
 
 qq = 9.5
 
-output_file_path = 'output/wideLearningSerialLayer_output.json'
+# Извлечение имени первого файла без расширения
+base_file_name = os.path.splitext(file_names[0])[0]
+# Создание пути к файлу JSON с использованием имени первого файла
+output_file_path = f'output/wlsl_{base_file_name}.json'
 with open(output_file_path, 'w') as json_file:
     json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
 print("Результат сохранен в", output_file_path)
