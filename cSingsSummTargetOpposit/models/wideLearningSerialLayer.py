@@ -455,6 +455,9 @@ while nn >= 2:
 	end_time = time.time()  # Конец отсчета времени
 	time_elapsed = round(end_time - start_time, 3)  # Вычисление времени выполнения
 
+	weights = wlsl.bestWeights[ww][:wlsl.sizeVector]
+	weights_str = ", ".join(map(str, weights))
+
 	#Блок сохранения JSON
 	output_data = {
 	"neuron_number": neuron_number,
@@ -464,7 +467,7 @@ while nn >= 2:
     "threshold_right": wlsl.bestWeights[ww][-4],
     "category_left": wlsl.classesName[wlsl.bestWeights[ww][-9]],
     "category_right": wlsl.classesName[wlsl.bestWeights[ww][-5]],
-    "previous_weights": wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
+    "previous_weights": weights_str, #wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
     "cut_off_left": wlsl.bestWeights[ww][-7],
     "instances_left": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],
     "cut_off_right": wlsl.bestWeights[ww][-3],
