@@ -497,7 +497,7 @@ while nn >= 2:
 qq = 9.5
 
 # Извлечение имени первого файла без расширения
-base_file_name = os.path.splitext(file_names[0])[0]
+base_file_name = os.path.splitext(os.path.basename(file_names[0]))[0]
 # Создание пути к файлу JSON с использованием имени первого файла
 output_file_path = f'output/wlsl_{base_file_name}.json'
 with open(output_file_path, 'w') as json_file:
