@@ -53,16 +53,12 @@ class wideLearningSerialLayer:
 	#Инициализировать столбец «значение скалярного произведения»
 	def initColScalarMul(self, curWeights):
 		self.inputsClassTraining[:, :, self.sizeVector+1] = np.einsum('ijk,k->ij', self.inputsClassTraining[:, :, :self.sizeVector], curWeights)
-
+	#Обнуляет любой заданный столбец для всех классов
+	def zero_column(self, column_index):
+		self.inputsClassTraining[:, :, column_index] = 0
 	#Обнулить столбец «значение скалярного произведения»
 	def zerosColScalarMul(self):
-		yy = 0
-		while yy < self.countClasses:
-			uu = 0 
-			while uu < self.countInstancesEachClassTraining[yy]:
-				self.inputsClassTraining[yy][uu][self.sizeVector+1] = 0
-				uu += 1
-			yy += 1
+		self.zero_column(self.sizeVector + 1)
 	#Определить целевую и противоположную категории
 	def getMinMaxScalarMul(self):
 		yy = 0
@@ -136,13 +132,8 @@ class wideLearningSerialLayer:
 		return noOppMin
 	#Обнулить столбец «признак отсеченности»
 	def zerosColCutOffSign(self):
-		yy = 0
-		while yy < self.countClasses:
-			uu = 0 
-			while uu < self.countInstancesEachClassTraining[yy]:
-				self.inputsClassTraining[yy][uu][self.sizeVector+2] = 0
-				uu += 1
-			yy += 1
+		self.zero_column(self.sizeVector + 2)
+		
 	#Установить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
 	def setColCutOffSignTarget(self, tCat, noTaMax):
 		behindWall = 0
