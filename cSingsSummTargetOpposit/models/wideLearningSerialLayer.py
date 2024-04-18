@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from xml.etree.ElementTree import tostring
 #import sys
 import numpy as np
@@ -6,6 +7,7 @@ import csv
 from DataLoader import DataLoader
 import json
 import os
+import time
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
@@ -367,6 +369,11 @@ data_loader.load_data()
 
 #Для JSON
 output = []
+# Убедимся, что каталог для сохранения файлов существует
+output_directory = 'output'
+if not os.path.exists(output_directory):
+    os.makedirs(output_directory)
+
 
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
 wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
@@ -380,7 +387,9 @@ neuron_number = 0
 while nn >= 2:
 	seconds = time.time()
 	local_time = time.ctime(seconds)
-	print("Местное время:", local_time)
+	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+	print("[", neuron_number, "] Местное время:", formatted_time)
+	start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
 	while qq < wlsl.countClasses-1:
@@ -441,17 +450,24 @@ while nn >= 2:
 	print(wlsl.bestWeights[ww][-8], wlsl.bestWeights[ww][-4],sep=', ')
 	print(wlsl.classesName[wlsl.bestWeights[ww][-9]], wlsl.classesName[wlsl.bestWeights[ww][-5]], sep=', ')
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
-	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
+	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],'|',wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
+
+	end_time = time.time()  # Конец отсчета времени
+	time_elapsed = round(end_time - start_time, 3)  # Вычисление времени выполнения
+
+	weights = wlsl.bestWeights[ww][:wlsl.sizeVector]
+	weights_str = ", ".join(map(str, weights))
 
 	#Блок сохранения JSON
 	output_data = {
 	"neuron_number": neuron_number,
-    "timestamp": local_time,
+	"time_elapsed_seconds": time_elapsed,
+    "timestamp": formatted_time,
     "threshold_left": wlsl.bestWeights[ww][-8],
     "threshold_right": wlsl.bestWeights[ww][-4],
     "category_left": wlsl.classesName[wlsl.bestWeights[ww][-9]],
     "category_right": wlsl.classesName[wlsl.bestWeights[ww][-5]],
-    "previous_weights": wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
+    "previous_weights": weights_str, #wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
     "cut_off_left": wlsl.bestWeights[ww][-7],
     "instances_left": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],
     "cut_off_right": wlsl.bestWeights[ww][-3],
@@ -460,7 +476,18 @@ while nn >= 2:
 	#print(f"Cut off left: {output_data['cut_off_left']} out of {output_data['instances_left']}")
 	#print(f"Cut off right: {output_data['cut_off_right']} out of {output_data['instances_right']}\n")
 	output.append(output_data)
+	
+	# Извлечение имени первого файла без расширения
+	base_file_name = os.path.splitext(os.path.basename(file_names[0]))[0]
+	# Путь к временному файлу JSON
+	temp_output_file_path = f'{output_directory}/wlsl_{base_file_name}_temp.json'
+	# Запись данных во временный JSON файл на каждом шаге
+	with open(temp_output_file_path, 'w') as temp_json_file:
+		json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
 
+	# Копирование данных из временного файла в постоянный в конце каждой итерации
+	final_output_file_path = f'{output_directory}/wlsl_{base_file_name}.json'
+	os.replace(temp_output_file_path, final_output_file_path)
 
 	#Инициализировать столбец «значение скалярного произведения»
 	wlsl.initColScalarMul(wlsl.bestWeights[ww][:wlsl.sizeVector])
@@ -493,13 +520,13 @@ while nn >= 2:
 			nn += 1
 		rr += 1
 	neuron_number += 1
+	print()
 
 qq = 9.5
 
-# Извлечение имени первого файла без расширения
-base_file_name = os.path.splitext(os.path.basename(file_names[0]))[0]
+
 # Создание пути к файлу JSON с использованием имени первого файла
-output_file_path = f'output/wlsl_{base_file_name}.json'
-with open(output_file_path, 'w') as json_file:
-    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
-print("Результат сохранен в", output_file_path)
+#output_file_path = f'output/wlsl_{base_file_name}.json'
+#with open(output_file_path, 'w') as json_file:
+#    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
+#print("Результат сохранен в", output_file_path)
