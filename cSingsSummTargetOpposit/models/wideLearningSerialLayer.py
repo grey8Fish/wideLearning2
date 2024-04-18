@@ -354,6 +354,7 @@ data_loader.load_data()
 
 #Для JSON
 output = []
+timestamp = data_loader.get_timestamp()
 # Убедимся, что каталог для сохранения файлов существует
 output_directory = 'output'
 if not os.path.exists(output_directory):
@@ -367,6 +368,13 @@ wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
 wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
 #wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
+base_name = os.path.basename(file_names[0]).split('_class')[0]
+# Извлечение имени первого файла без расширения
+#base_file_name = base_name #os.path.splitext(os.path.basename(file_names[0]))[0]
+# Путь к файлу JSON
+temp_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}.temp.json'
+final_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}.json'
+
 nn = 2
 neuron_number = 0
 while nn >= 2:
@@ -462,16 +470,14 @@ while nn >= 2:
 	#print(f"Cut off right: {output_data['cut_off_right']} out of {output_data['instances_right']}\n")
 	output.append(output_data)
 	
-	# Извлечение имени первого файла без расширения
-	base_file_name = os.path.splitext(os.path.basename(file_names[0]))[0]
-	# Путь к временному файлу JSON
-	temp_output_file_path = f'{output_directory}/wlsl_{base_file_name}_temp.json'
 	# Запись данных во временный JSON файл на каждом шаге
+	#with open(temp_output_file_path, 'w') as temp_json_file:
+	#	json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
+	temp_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}_{neuron_number}.temp.json' # Изменено для сохранения всех временных файлов
 	with open(temp_output_file_path, 'w') as temp_json_file:
 		json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
 
-	# Копирование данных из временного файла в постоянный в конце каждой итерации
-	final_output_file_path = f'{output_directory}/wlsl_{base_file_name}.json'
+	# Копирование данных из временного файла в постоянный в конце каждой итерации, закомментировать если нужно сохранять все нейроны 
 	os.replace(temp_output_file_path, final_output_file_path)
 
 	#Инициализировать столбец «значение скалярного произведения»
@@ -509,14 +515,21 @@ while nn >= 2:
 
 qq = 9.5
 
-#Вывод итогового времени выполнения
+
 end_time = datetime.now()
 time_delta = end_time - start_time
 total_time = str(time_delta) 
+final_output = {
+	"script_name": "wideLearningSerialLayer.py",
+    "file_names": file_names,  
+	"start_time": start_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время начала работы программы
+    "end_time": end_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время окончания работы программы
+	"total_time_seconds": total_time,
+    "neurons": output          # вся информация по нейронам
+	}
+with open(final_output_file_path, 'w') as final_json_file:
+    json.dump(final_output, final_json_file, indent=4, default=lambda x: x.tolist())
+	
+#Вывод итогов выполнения
+print(f"Файл сохранён: {final_output_file_path}")
 print("Время выполнения:", total_time)
-
-# Создание пути к файлу JSON с использованием имени первого файла
-#output_file_path = f'output/wlsl_{base_file_name}.json'
-#with open(output_file_path, 'w') as json_file:
-#    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
-#print("Результат сохранен в", output_file_path)

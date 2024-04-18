@@ -1,8 +1,9 @@
-﻿#1. Пробный шаг надо сделать первым шагом
-#2. Вставить проверку противоположной категории
-import csv
+﻿import csv
+from datetime import datetime
 import numpy as np
 import pandas as pd
+import re
+
 
 class DataLoader:
     """
@@ -34,6 +35,28 @@ class DataLoader:
         self._prepare_data()          # Вызов метода для подготовки и анализа данных
         #self.class_names = []         # Инициализация атрибута для хранения названий классов
         #self.class_instances = {}     # Добавление для хранения количества экземпляров каждого класса
+
+    def get_timestamp(self):
+        """
+        Пытается извлечь timestamp из имени файла. Если не удается, возвращает текущий timestamp.
+        Предполагается, что timestamp — это последовательность в формате YYYYMMDDHHMMSS в конце имени файла перед расширением.
+        """
+        # Попытка извлечь timestamp из первого файла в списке
+        try:
+            # Пример имени файла: 'outputGenderv7\\gender_classification_v7_0_part0_20240325124654.csv'
+            # Регулярное выражение для поиска последовательности цифр, соответствующих timestamp
+            match = re.search(r"(\d{14})(?=\.\w+)$", self.file_names[0])
+            if match:
+                timestamp = match.group(1)
+                # Проверяем, что найденная строка действительно является валидной датой
+                datetime.strptime(timestamp, "%Y%m%d%H%M%S")
+                return timestamp
+            else:
+                raise ValueError("No valid timestamp found")
+        except ValueError:
+            # В случае ошибки или отсутствия timestamp возвращаем текущий timestamp
+            return datetime.now().strftime("%Y%m%d%H%M%S")
+
 
     def _prepare_data(self):
         """
