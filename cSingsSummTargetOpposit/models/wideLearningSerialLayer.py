@@ -383,7 +383,7 @@ while nn >= 2:
 	local_time = time.ctime(seconds)
 	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 	print("[", neuron_number, "] Местное время:", formatted_time)
-	start_time = time.time()  # Начало отсчета времени для нейрона
+	neuron_start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
 	while qq < wlsl.countClasses-1:
@@ -446,8 +446,8 @@ while nn >= 2:
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
 	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],'|',wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
 
-	end_time = time.time()  # Конец отсчета времени
-	time_elapsed = round(end_time - start_time, 3)  # Вычисление времени выполнения
+	neuron_end_time = time.time()  # Конец отсчета времени
+	time_elapsed = round(neuron_end_time - neuron_start_time, 3)  # Вычисление времени выполнения
 
 	weights = wlsl.bestWeights[ww][:wlsl.sizeVector]
 	weights_str = ", ".join(map(str, weights))
@@ -519,10 +519,10 @@ while nn >= 2:
 qq = 9.5
 
 #Вывод итогового времени выполнения
-#end_time = datetime.now()
-#time_delta = end_time - start_time
-#total_time = str(time_delta) 
-#print("Время выполнения:", total_time)
+end_time = datetime.now()
+time_delta = end_time - start_time
+total_time = str(time_delta) 
+print("Время выполнения:", total_time)
 
 # Создание пути к файлу JSON с использованием имени первого файла
 #output_file_path = f'output/wlsl_{base_file_name}.json'
