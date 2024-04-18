@@ -1,4 +1,5 @@
 import time
+from xml.etree.ElementTree import tostring
 #import sys
 import numpy as np
 import csv
@@ -348,7 +349,7 @@ class wideLearningSerialLayer:
 
 
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-#file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
+file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
 #file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']
 #file_names = ['HotelReservations_0_part0_20240319174159.csv','HotelReservations_1_part0_20240319174159.csv']
@@ -359,7 +360,7 @@ np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 			  #'outputWineQT\\WineQT_5_part0_20240322162654.csv','outputWineQT\\WineQT_6_part0_20240322162654.csv','outputWineQT\\WineQT_7_part0_20240322162654.csv','outputWineQT\\WineQT_4_part0_20240322162654.csv','outputWineQT\\WineQT_8_part0_20240322162654.csv','outputWineQT\\WineQT_3_part0_20240322162654.csv'
 #file_names = ['outputIonosphere4\\ionosphere3_class_0_edu_20240406105133.csv','outputIonosphere4\\ionosphere3_class_1_edu_20240406105133.csv']
 #file_names = ['outputApple4\\apple_quality_class_0_edu_20240406125611.csv','outputApple4\\apple_quality_class_1_edu_20240406125611.csv']
-file_names = ['outputGenderV9\\gender_class_v7_class_0_edu_20240408170208.csv','outputGenderV9\\gender_class_v7_class_1_edu_20240408170208.csv']
+#file_names = ['outputGenderV9\\gender_class_v7_class_0_edu_20240408170208.csv','outputGenderV9\\gender_class_v7_class_1_edu_20240408170208.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data() 
 
@@ -374,6 +375,7 @@ wlsl.inputsClassTraining = data_loader.get_data().copy()
 wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
 #wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
 nn = 2
+neuron_number = 0
 while nn >= 2:
 	seconds = time.time()
 	local_time = time.ctime(seconds)
@@ -440,23 +442,25 @@ while nn >= 2:
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
 	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
 
+	print(neuron_number)
 	#Блок сохранения JSON
 	output_data = {
-	"neuron_number": rr,
+	"neuron_number": neuron_number,
     "timestamp": local_time,
     "threshold_left": wlsl.bestWeights[ww][-8],
     "threshold_right": wlsl.bestWeights[ww][-4],
     "category_left": wlsl.classesName[wlsl.bestWeights[ww][-9]],
     "category_right": wlsl.classesName[wlsl.bestWeights[ww][-5]],
-    "previous_weights": wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь у казывать размер вектора
+    "previous_weights": wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
     "cut_off_left": wlsl.bestWeights[ww][-7],
-    "cut_off_right": wlsl.bestWeights[ww][-3],
     "instances_left": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],
+    "cut_off_right": wlsl.bestWeights[ww][-3],
     "instances_right": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]]
 	}
 	#print(f"Cut off left: {output_data['cut_off_left']} out of {output_data['instances_left']}")
 	#print(f"Cut off right: {output_data['cut_off_right']} out of {output_data['instances_right']}\n")
 	output.append(output_data)
+
 
 	#Инициализировать столбец «значение скалярного произведения»
 	wlsl.initColScalarMul(wlsl.bestWeights[ww][:wlsl.sizeVector])
@@ -488,6 +492,7 @@ while nn >= 2:
 		if wlsl.countInstancesEachClassTraining[rr] > 0:
 			nn += 1
 		rr += 1
+	neuron_number += 1
 
 qq = 9.5
 
