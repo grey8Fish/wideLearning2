@@ -52,7 +52,8 @@ class wideLearningSerialLayer:
 		return self.classesName		
 	#Инициализировать столбец «значение скалярного произведения»
 	def initColScalarMul(self, curWeights):
-		self.inputsClassTraining[:, :, self.sizeVector+1] = np.einsum('ijk,k->ij', self.inputsClassTraining[:, :, :self.sizeVector], curWeights)
+		for yy in range(self.countClasses):
+			self.inputsClassTraining[yy, :, self.sizeVector+1] = np.dot(self.inputsClassTraining[yy, :, :self.sizeVector], curWeights)
 	#Обнуляет любой заданный столбец для всех классов
 	def zero_column(self, column_index):
 		self.inputsClassTraining[:, :, column_index] = 0
