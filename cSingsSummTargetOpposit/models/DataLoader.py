@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import re
+import json
 
 
 class DataLoader:
@@ -92,7 +93,21 @@ class DataLoader:
         #self.arg_classes = np.zeros((self.classes_count+1, self.instances_max*2, self.ordinate_count + 2), dtype=np.int32)
         self.class_names = list(class_instances.keys())
         self.class_instances = class_instances 
+     
+
+    def load_json_data(self, json_file_path):
+        """
+        Загружает данные из JSON файла.
+
+        Аргументы:
+            json_file_path (str): Путь к файлу JSON.
+        """
+        with open(json_file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
         
+        self.neurons = data.get('neurons', [])
+        print("Данные JSON загружены и обработаны.")   
+
 
     def load_data(self):
         """

@@ -78,9 +78,25 @@ n06.setVectorWeights([-40,  -5,   6, -40,  40,   0,   0])
 inputs = np.array([20,	-19,	-18,	20,	20,	20,	-20,	3611])
 #inputs = np.array([20,	-19,	2,	20,	20,	-20,	-20,	633])
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-file_names = ['outputGender\\gender_classification_v7_0_part2_20240325124654.csv','outputGender\\gender_classification_v7_1_part2_20240325124654.csv']
+file_names = ['outputApple100\\apple_quality_class_0_edu_20240418154808.csv','outputApple100\\apple_quality_class_1_edu_20240418154808.csv']
 data_loader = DataLoader(file_names)
 data_loader.load_data()
+
+
+# Как читать JSON данные через DataLoader 
+data_loader.load_json_data('output\\weights_seed0_23_11_26.csv_20240419162211.json')
+neurons_data = data_loader.neurons  # Получаем данные о нейронах
+for neuron in neurons_data:
+    print(f"Нейрон #{neuron['neuron_number']}:")
+    print(f"  Время выполнения: {neuron['time_elapsed_seconds']} секунд")
+    print(f"  Порог слева: {neuron['threshold_left']}")
+    print(f"  Порог справа: {neuron['threshold_right']}")
+    print(f"  Категория слева: {neuron['category_left']}")
+    print(f"  Категория справа: {neuron['category_right']}")
+    print(f"  Веса: {neuron['previous_weights']}")  # предполагается, что веса уже в формате строки
+    print(f"  Отсечения слева: {neuron['cut_off_left']}, экземпляров слева: {neuron['instances_left']}")
+    print(f"  Отсечения справа: {neuron['cut_off_right']}, экземпляров справа: {neuron['instances_right']}")
+
 
 qq = 0
 while qq < 200:
@@ -160,3 +176,5 @@ while ww < 2:
 	print(' ')
 	ww += 1
 qq = 9
+
+
