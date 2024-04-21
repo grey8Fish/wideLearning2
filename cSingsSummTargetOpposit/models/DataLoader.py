@@ -105,7 +105,6 @@ class DataLoader:
         with open(json_file_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         
-        # Предполагается, что данные нейронов нужны в других структурах, здесь просто пример
         self.neurons = data.get('neurons', [])
         print("Данные JSON загружены и обработаны.")   
 
