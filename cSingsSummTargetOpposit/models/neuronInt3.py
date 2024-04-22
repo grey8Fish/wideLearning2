@@ -84,7 +84,7 @@ data_loader.load_data()
 
 
 # Как читать JSON данные через DataLoader 
-data_loader.load_json_data('output\\weights_seed0_23_11_26.csv_20240419162211.json')
+data_loader.load_json_data('output\\weights_loan_sanction_test_20240422124652.json')
 neurons_data = data_loader.neurons  # Получаем данные о нейронах
 for neuron in neurons_data:
     print(f"Нейрон #{neuron['neuron_number']}:")

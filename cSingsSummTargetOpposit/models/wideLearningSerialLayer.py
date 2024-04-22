@@ -222,7 +222,24 @@ class wideLearningSerialLayer:
 		a = a[a[:,-1].argsort()]
 		print(a)'''
 		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
-	
+	#Контрастирование весов. Делит веса на 2 без изменения количества отсеченных.
+    def contrastingWeights(self, oppoCat, targCat, countCutOffOpposit, countCutOffTarget):
+        countCutOffPrev = countCutOffOpposit + countCutOffTarget
+        qq = 0
+        while qq < 1:
+            self.currentWeightsInit //= 2
+            nTargMax = self.calcNoTarMax(targCat)                    #расчет количества отсеченных
+            countCutOffTarg = self.calcCutOffSignTarget(targCat, nTargMax)
+            nOppoMin = self.calcNoOppMin(oppoCat)
+            countCutOffOppo = self.calcCutOffSignOpposit(oppoCat, nOppoMin)
+            countCutOffCurr = countCutOffTarg + countCutOffOppo#расчет количества отсеченных
+            if countCutOffCurr == countCutOffPrev:
+                wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
+            else:
+                wlsl.currentWeightsInit = wlsl.previousWeightsInit.copy()
+                break
+            qq += 1
+        countCutOffPrev = 9
 	#Градиентный спуск сканированием, наивный вариант
 	def  gradientDescentScanning(self, oppoCat, noOppoMin, targCat, noTargMax, cutOffOppo, cutOffTarg):
 		oppoMax = self.setColCutOffSignOpposit(oppoCat, noOppoMin)
@@ -353,7 +370,7 @@ class wideLearningSerialLayer:
 
 start_time = datetime.now()
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
+file_names = ['output\\loan_sanction_test_class_0_edu_20240422120953.csv','output\\loan_sanction_test_class_1_edu_20240422120953.csv','output\\loan_sanction_test_class_2_edu_20240422120953.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
 #file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']
 #file_names = ['HotelReservations_0_part0_20240319174159.csv','HotelReservations_1_part0_20240319174159.csv']
@@ -401,47 +418,41 @@ while nn >= 2:
 	neuron_start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
-	while qq < wlsl.countClasses-1:
+	while qq < wlsl.countClasses:
 		ww = 0
 		while ww < wlsl.countInstancesEachClassTraining[qq]:
-			ee = qq + 1
-			while ee < wlsl.countClasses:
-				rr = 0
-				while rr < wlsl.countInstancesEachClassTraining[ee]:
-					tt = 0 
-					while tt < wlsl.sizeVector:
-						#первоначальное приближение вектора весов 
-						wlsl.currentWeightsInit[tt] = wlsl.inputsClassTraining[qq][ww][tt] - wlsl.inputsClassTraining[ee][rr][tt]
-						tt += 1
-					#Инициализировать столбец «значение скалярного произведения»
-					wlsl.initColScalarMul(wlsl.currentWeightsInit)
-					#Определить целевую и противоположную категории
-					mm = wlsl.getMinMaxScalarMul()
-					opCat = int(mm[0])
-					taCat = int(mm[1])
-					#Определить максимальное значение скалярного произведения в НЕ целевых категориях
-					noTargMax = wlsl.calcNoTarMax(taCat)
+			ee = 0
+			while ee < wlsl.sizeVector:#первоначальное приближение вектора весов 
+				wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee] #// 2
+				#Инициализировать столбец «значение скалярного произведения»
+				wlsl.initColScalarMul(wlsl.currentWeightsInit)
+				#Определить целевую и противоположную категории
+				mm = wlsl.getMinMaxScalarMul()
+				opCat = int(mm[0])
+				taCat = int(mm[1])
+				#Определить максимальное значение скалярного произведения в НЕ целевых категориях
+				noTargMax = wlsl.calcNoTarMax(taCat)
+				#print(noTargMax)
+				#Определить количество отсечённых экземпляров в целевой категории
+				countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
+				#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
+				noOppoMin = wlsl.calcNoOppMin(opCat)
+				#print(noOppoMin)
+				#Определить количество отсечённых экземпляров в противоположной категории
+				countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
+				countCutOffCurrent = countCutOffTarget + countCufOffOpposit
+				if countCutOffPrev < countCutOffCurrent:
+					countCutOffPrev = countCutOffCurrent
+					wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
+					#countCutOffRight = countCutOffTarget
+					#categoryRight = taCat
 					#print(noTargMax)
-					#Определить количество отсечённых экземпляров в целевой категории
-					countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
-					#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
-					noOppoMin = wlsl.calcNoOppMin(opCat)
-					#print(noOppoMin)
-					#Определить количество отсечённых экземпляров в противоположной категории
-					countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
-					countCutOffCurrent = countCutOffTarget + countCufOffOpposit
-					if countCutOffPrev < countCutOffCurrent:
-						countCutOffPrev = countCutOffCurrent
-						wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
-						#countCutOffRight = countCutOffTarget
-						#categoryRight = taCat
-						#print(noTargMax)
-						#maxNoRight = noTargMax
-						#countCufOffLeft = countCufOffOpposit
-						#categoryLeft = opCat
-						#minNoLeft = noOppoMin
-						wlsl.gradientDescentScanning(opCat, noOppoMin, taCat, noTargMax, countCufOffOpposit, countCutOffTarget)
-					rr += 1
+					#maxNoRight = noTargMax
+					#countCufOffLeft = countCufOffOpposit
+					#categoryLeft = opCat
+					#minNoLeft = noOppoMin
+					wlsl.gradientDescentScanning(opCat, noOppoMin, taCat, noTargMax, countCufOffOpposit, countCutOffTarget)
+#					rr += 1
 					#ff += 1
 				ee += 1
 			#print(ww)
@@ -549,3 +560,4 @@ with open(final_output_file_path, 'w') as final_json_file:
 #Вывод итогов выполнения
 print(f"Файл сохранён: {final_output_file_path}")
 print("Время выполнения:", total_time)
+ qq = 9
