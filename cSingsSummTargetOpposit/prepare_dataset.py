@@ -59,8 +59,10 @@ def initialize_output_directory(output_folder='output'):
     """
 
     if os.path.exists(output_folder):
-        for file in os.listdir(output_folder):
-            os.remove(os.path.join(output_folder, file))
+        pass
+        #Почистить папку
+        #for file in os.listdir(output_folder):
+            #os.remove(os.path.join(output_folder, file))
     else:
         os.makedirs(output_folder)
 
@@ -336,10 +338,10 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "apple_quality.csv"     # Имя файла (с расширением)
-    class_column = "Quality"            # Целевая колонка
-    instance_column = "A_id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    file_name = "milknew.csv"     # Имя файла (с расширением)
+    class_column = "Grade"            # Целевая колонка
+    instance_column = "Id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+    #significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
