@@ -1,4 +1,5 @@
-import time
+#import time #отказываемся в пользу datetime
+from datetime import datetime
 from xml.etree.ElementTree import tostring
 #import sys
 import numpy as np
@@ -6,6 +7,7 @@ import csv
 from DataLoader import DataLoader
 import json
 import os
+import time
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
@@ -28,13 +30,8 @@ class wideLearningSerialLayer:
 		self.vectorDeltasPrev = np.zeros(siVector, dtype=int)#в процедурах уточнения
 	#Обнуление массива лучших весов
 	def zeroingBestWeights(self):
-		qq = 0 
-		while qq < self.numberBest:
-			ww = 0
-			while ww < (self.sizeVector + 9):
-				self.bestWeights[qq][ww] = 0
-				ww += 1
-			qq += 1
+		self.bestWeights.fill(0)
+		
 	#Вернуть 3-х мерную матрицу экземпляров обучающей выборки
 	def getInputsClassTraining(self):
 		return self.inputsClassTraining
@@ -57,9 +54,12 @@ class wideLearningSerialLayer:
 	def initColScalarMul(self, curWeights):
 		for yy in range(self.countClasses):
 			self.inputsClassTraining[yy, :, self.sizeVector+1] = np.dot(self.inputsClassTraining[yy, :, :self.sizeVector], curWeights)
-
+	#Обнуляет любой заданный столбец для всех классов
+	def zero_column(self, column_index):
+		self.inputsClassTraining[:, :, column_index] = 0
 	#Обнулить столбец «значение скалярного произведения»
 	def zerosColScalarMul(self):
+		#self.zero_column(self.sizeVector + 1)
 		yy = 0
 		while yy < self.countClasses:
 			uu = 0 
@@ -67,6 +67,7 @@ class wideLearningSerialLayer:
 				self.inputsClassTraining[yy][uu][self.sizeVector+1] = 0
 				uu += 1
 			yy += 1
+			
 	#Определить целевую и противоположную категории
 	def getMinMaxScalarMul(self):
 		yy = 0
@@ -140,6 +141,7 @@ class wideLearningSerialLayer:
 		return noOppMin
 	#Обнулить столбец «признак отсеченности»
 	def zerosColCutOffSign(self):
+		#self.zero_column(self.sizeVector + 2)
 		yy = 0
 		while yy < self.countClasses:
 			uu = 0 
@@ -147,6 +149,7 @@ class wideLearningSerialLayer:
 				self.inputsClassTraining[yy][uu][self.sizeVector+2] = 0
 				uu += 1
 			yy += 1
+		
 	#Установить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
 	def setColCutOffSignTarget(self, tCat, noTaMax):
 		behindWall = 0
@@ -348,7 +351,7 @@ class wideLearningSerialLayer:
 		self.bestWeights[ww][-9] = oppoCat	#Левый класс -9
 
 
-
+start_time = datetime.now()
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 file_names = ['seed0_23_11_26.csv', 'seed1_23_11_26.csv', 'seed2_23_11_26.csv']#, 'cirrhosis_4.0_part0_20240301100740.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
@@ -367,6 +370,12 @@ data_loader.load_data()
 
 #Для JSON
 output = []
+timestamp = data_loader.get_timestamp()
+# Убедимся, что каталог для сохранения файлов существует
+output_directory = 'output'
+if not os.path.exists(output_directory):
+    os.makedirs(output_directory)
+
 
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
 wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
@@ -375,12 +384,21 @@ wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
 wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
 #wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
+base_name = os.path.basename(file_names[0]).split('_class')[0]
+# Извлечение имени первого файла без расширения
+#base_file_name = base_name #os.path.splitext(os.path.basename(file_names[0]))[0]
+# Путь к файлу JSON
+temp_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}.temp.json'
+final_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}.json'
+
 nn = 2
 neuron_number = 0
 while nn >= 2:
-	seconds = time.time()
-	local_time = time.ctime(seconds)
-	print("Местное время:", local_time)
+	seconds = datetime.now().timestamp()
+	local_time = datetime.fromtimestamp(seconds).strftime('%a %b %d %H:%M:%S %Y')
+	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+	print("[", neuron_number, "] Местное время:", formatted_time)
+	neuron_start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
 	while qq < wlsl.countClasses-1:
@@ -441,17 +459,24 @@ while nn >= 2:
 	print(wlsl.bestWeights[ww][-8], wlsl.bestWeights[ww][-4],sep=', ')
 	print(wlsl.classesName[wlsl.bestWeights[ww][-9]], wlsl.classesName[wlsl.bestWeights[ww][-5]], sep=', ')
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
-	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
+	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],'|',wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
+
+	neuron_end_time = time.time()  # Конец отсчета времени
+	time_elapsed = round(neuron_end_time - neuron_start_time, 3)  # Вычисление времени выполнения
+
+	weights = wlsl.bestWeights[ww][:wlsl.sizeVector]
+	weights_str = ", ".join(map(str, weights))
 
 	#Блок сохранения JSON
 	output_data = {
 	"neuron_number": neuron_number,
-    "timestamp": local_time,
+	"time_elapsed_seconds": time_elapsed,
+    "timestamp": formatted_time,
     "threshold_left": wlsl.bestWeights[ww][-8],
     "threshold_right": wlsl.bestWeights[ww][-4],
     "category_left": wlsl.classesName[wlsl.bestWeights[ww][-9]],
     "category_right": wlsl.classesName[wlsl.bestWeights[ww][-5]],
-    "previous_weights": wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
+    "previous_weights": weights_str, #wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
     "cut_off_left": wlsl.bestWeights[ww][-7],
     "instances_left": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],
     "cut_off_right": wlsl.bestWeights[ww][-3],
@@ -460,7 +485,16 @@ while nn >= 2:
 	#print(f"Cut off left: {output_data['cut_off_left']} out of {output_data['instances_left']}")
 	#print(f"Cut off right: {output_data['cut_off_right']} out of {output_data['instances_right']}\n")
 	output.append(output_data)
+	
+	# Запись данных во временный JSON файл на каждом шаге
+	#with open(temp_output_file_path, 'w') as temp_json_file:
+	#	json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
+	temp_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}_{neuron_number}.temp.json' # Изменено для сохранения всех временных файлов
+	with open(temp_output_file_path, 'w') as temp_json_file:
+		json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
 
+	# Копирование данных из временного файла в постоянный в конце каждой итерации, закомментировать если нужно сохранять все нейроны 
+	os.replace(temp_output_file_path, final_output_file_path)
 
 	#Инициализировать столбец «значение скалярного произведения»
 	wlsl.initColScalarMul(wlsl.bestWeights[ww][:wlsl.sizeVector])
@@ -493,13 +527,25 @@ while nn >= 2:
 			nn += 1
 		rr += 1
 	neuron_number += 1
+	print()
 
 qq = 9.5
 
-# Извлечение имени первого файла без расширения
-base_file_name = os.path.splitext(os.path.basename(file_names[0]))[0]
-# Создание пути к файлу JSON с использованием имени первого файла
-output_file_path = f'output/wlsl_{base_file_name}.json'
-with open(output_file_path, 'w') as json_file:
-    json.dump(output, json_file, indent=4, default=lambda x: x.tolist())
-print("Результат сохранен в", output_file_path)
+
+end_time = datetime.now()
+time_delta = end_time - start_time
+total_time = str(time_delta) 
+final_output = {
+	"script_name": "wideLearningSerialLayer.py",
+    "file_names": file_names,  
+	"start_time": start_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время начала работы программы
+    "end_time": end_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время окончания работы программы
+	"total_time_seconds": total_time,
+    "neurons": output          # вся информация по нейронам
+	}
+with open(final_output_file_path, 'w') as final_json_file:
+    json.dump(final_output, final_json_file, indent=4, default=lambda x: x.tolist())
+	
+#Вывод итогов выполнения
+print(f"Файл сохранён: {final_output_file_path}")
+print("Время выполнения:", total_time)
