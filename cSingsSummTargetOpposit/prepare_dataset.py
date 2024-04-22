@@ -345,9 +345,9 @@ if __name__ == "__main__":
     #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
-    percent_edu = 5       
-    percent_test = 30
-    percent_correct = 65
+    percent_edu = 100       
+    percent_test = 0
+    percent_correct = 0
 
    
 #   file_name = "milknew.csv" # Имя файла (с расширением)
