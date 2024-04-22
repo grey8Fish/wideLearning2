@@ -1,0 +1,97 @@
+{
+    "script_name": "wideLearningSerialLayer.py",
+    "file_names": [
+        "output\\milknew_class_0_edu_20240422153827.csv",
+        "output\\milknew_class_1_edu_20240422153827.csv",
+        "output\\milknew_class_2_edu_20240422153827.csv"
+    ],
+    "start_time": "22.04.2024 15:40:56",
+    "end_time": "22.04.2024 15:40:57",
+    "total_time_seconds": "0:00:00.796687",
+    "neurons": [
+        {
+            "neuron_number": 0,
+            "time_elapsed_seconds": 0.297,
+            "timestamp": "22.04.2024 15:40:56",
+            "threshold_left": -48,
+            "threshold_right": -9,
+            "category_left": "1",
+            "category_right": "1",
+            "previous_weights": "2, 1, 0, 0, 0, 0, 0",
+            "cut_off_left": 5,
+            "instances_left": 26,
+            "cut_off_right": 15,
+            "instances_right": 26
+        },
+        {
+            "neuron_number": 1,
+            "time_elapsed_seconds": 0.25,
+            "timestamp": "22.04.2024 15:40:56",
+            "threshold_left": 59,
+            "threshold_right": 2366,
+            "category_left": "2",
+            "category_right": "0",
+            "previous_weights": "1, -13, 17, 19, 29, 19, 12",
+            "cut_off_left": 26,
+            "instances_left": 32,
+            "cut_off_right": 10,
+            "instances_right": 19
+        },
+        {
+            "neuron_number": 2,
+            "time_elapsed_seconds": 0.094,
+            "timestamp": "22.04.2024 15:40:56",
+            "threshold_left": -1007,
+            "threshold_right": 1546,
+            "category_left": "2",
+            "category_right": "2",
+            "previous_weights": "2, -11, 20, 20, 17, -18, -2",
+            "cut_off_left": 1,
+            "instances_left": 6,
+            "cut_off_right": 4,
+            "instances_right": 6
+        },
+        {
+            "neuron_number": 3,
+            "time_elapsed_seconds": 0.047,
+            "timestamp": "22.04.2024 15:40:57",
+            "threshold_left": -2051,
+            "threshold_right": 2781,
+            "category_left": "1",
+            "category_right": "0",
+            "previous_weights": "3, -16, 17, -18, 17, -18, -4",
+            "cut_off_left": 1,
+            "instances_left": 6,
+            "cut_off_right": 4,
+            "instances_right": 9
+        },
+        {
+            "neuron_number": 4,
+            "time_elapsed_seconds": 0.063,
+            "timestamp": "22.04.2024 15:40:57",
+            "threshold_left": 368,
+            "threshold_right": 2822,
+            "category_left": "0",
+            "category_right": "0",
+            "previous_weights": "2, -16, 17, -18, 17, 17, 5",
+            "cut_off_left": 4,
+            "instances_left": 5,
+            "cut_off_right": 1,
+            "instances_right": 5
+        },
+        {
+            "neuron_number": 5,
+            "time_elapsed_seconds": 0.031,
+            "timestamp": "22.04.2024 15:40:57",
+            "threshold_left": 2342,
+            "threshold_right": 2342,
+            "category_left": "1",
+            "category_right": "2",
+            "previous_weights": "27, 0, 17, -18, 17, -18, 2",
+            "cut_off_left": 5,
+            "instances_left": 5,
+            "cut_off_right": 1,
+            "instances_right": 1
+        }
+    ]
+}

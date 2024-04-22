@@ -370,7 +370,7 @@ class wideLearningSerialLayer:
 
 start_time = datetime.now()
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-file_names = ['output\\loan_sanction_test_class_0_edu_20240422120953.csv','output\\loan_sanction_test_class_1_edu_20240422120953.csv','output\\loan_sanction_test_class_2_edu_20240422120953.csv']
+file_names = ['outputApple400\\apple_quality_class_0_edu_20240418154718.csv','outputApple400\\apple_quality_class_1_edu_20240418154718.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
 #file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']
 #file_names = ['HotelReservations_0_part0_20240319174159.csv','HotelReservations_1_part0_20240319174159.csv']
@@ -423,7 +423,7 @@ while nn >= 2:
 		while ww < wlsl.countInstancesEachClassTraining[qq]:
 			ee = 0
 			while ee < wlsl.sizeVector:#первоначальное приближение вектора весов 
-				wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee] #// 2
+				wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee] // 2
 				#Инициализировать столбец «значение скалярного произведения»
 				wlsl.initColScalarMul(wlsl.currentWeightsInit)
 				#Определить целевую и противоположную категории
@@ -560,4 +560,4 @@ with open(final_output_file_path, 'w') as final_json_file:
 #Вывод итогов выполнения
 print(f"Файл сохранён: {final_output_file_path}")
 print("Время выполнения:", total_time)
- qq = 9
+qq = 9
