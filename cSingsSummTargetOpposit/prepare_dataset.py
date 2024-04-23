@@ -267,6 +267,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     initial_row_count = len(df)
     duplicates_mask = df.drop(columns=[class_column, 'RowNum']).duplicated(keep='first')
     num_duplicates = duplicates_mask.sum()  # Подсчет количества дубликатов (без первых уникальных вхождений)
+    percent_duplicates = 0
     if num_duplicates > 0:
         percent_duplicates = (num_duplicates / initial_row_count) * 100
         print(f'В обработанной выборке обнаружены и удалены {num_duplicates} дубликатов. ({percent_duplicates:.2f}%)')
@@ -312,7 +313,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
                 cor_files.append(file_info)
                 
     final_row_count = len(df)
-    return edu_files, test_files, cor_files, final_row_count
+    return edu_files, test_files, cor_files, final_row_count, num_duplicates, percent_duplicates
 
 def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None, max_rows_per_class=None, percent_edu=None, percent_test=None, percent_correct=None):
     """
@@ -340,7 +341,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     df, initial_row_count = read_file(file_name, source_folder)
     #Удаление дубликатов
     df, duplicates_count, percent_duplicates = remove_duplicates(df, class_column, excluded_columns, ignored_columns, instance_column)
-
+    
     # Шаг 3: Подготовка DataFrame - удаляет ненужные колонки
     df = prepare_df(df, excluded_columns, instance_column)
     
@@ -352,7 +353,8 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     df = calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits)
 
     # Шаг 6: Сохранение и перестановка колонок перед сохранением
-    edu_files, test_files, cor_files, final_row_count = save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
+    edu_files, test_files, cor_files, final_row_count, post_process_duplicates, post_process_percent_duplicates = save_and_rearrange_df(
+        df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
   
     # Шаг 7: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
@@ -360,7 +362,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 
     #Сохранение JSON
     process_info = {
-        "timestamp": datetime.now().isoformat(),
+        "time_started": datetime.now().isoformat(),
         "parameters": {
             "file_name": file_name,
             "class_column": class_column,
@@ -373,12 +375,16 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
             "percent_test": percent_test,
             "percent_correct": percent_correct
         },
-        "initial_row_count": initial_row_count,
-        "duplicates": {
-            "initial_count": duplicates_count,
-            "initial_percent": percent_duplicates
+        "initial_row_count": int(initial_row_count),
+        "initial_duplicates": {
+            "count": int(duplicates_count),
+            "percent": float(percent_duplicates)
         },
-        "final_row_count": final_row_count,
+        "post_process_duplicates": {
+            "count": int(post_process_duplicates),
+            "percent": float(post_process_percent_duplicates)
+        },
+        "final_row_count": int(final_row_count),
         "paths": {
             "source_folder": source_folder,
             "output_folder": output_folder
