@@ -25,15 +25,18 @@ def read_file(file_name, source_folder):
 
     # Чтение файла в зависимости от его формата
     if file_extension == '.txt':
-        return pd.read_csv(file_path, sep='\t')
+        df = pd.read_csv(file_path, sep='\t')
     elif file_extension == '.csv':
-        return pd.read_csv(file_path)
+        df = pd.read_csv(file_path)
     elif file_extension == '.tsv':
-        return pd.read_csv(file_path, sep='\t')
+        df = pd.read_csv(file_path, sep='\t')
     elif file_extension in ['.xls', '.xlsx']:
-        return pd.read_excel(file_path)
+        df = pd.read_excel(file_path)
     else:
         raise ValueError(f"Unsupported file format: {file_extension}")
+    
+    initial_row_count = len(df)  # Сохраняем исходное количество строк
+    return df, initial_row_count
 
 
 def save_json(data, file_path):
@@ -101,7 +104,7 @@ def remove_duplicates(df, class_column, excluded_columns=None, ignored_columns=N
     if duplicates_count > 0:
         percent_duplicates = (duplicates_count / initial_row_count) * 100
         print(f"В исходном файле обнаружены дубликаты: {duplicates_count} строк удалено ({percent_duplicates:.2f}%)")
-    return df
+    return df, duplicates_count, percent_duplicates
 
 
 def map_df(df, file_name, output_folder, class_column):
@@ -286,7 +289,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
         rows_for_edu = round(n_rows * percent_edu / 100)
         rows_for_test = round(n_rows * percent_test / 100)
         rows_for_correct = n_rows - rows_for_edu - rows_for_test
-
+        
         #rows_per_file = max(n_rows // 3, 1)  # Деление на 3 части, но не меньше одной строки на файл
 
         # Создание и сохранение файлов по частям
@@ -307,8 +310,9 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
                 test_files.append(file_info)
             elif name_part == 'cor':
                 cor_files.append(file_info)
-
-    return edu_files, test_files, cor_files
+                
+    final_row_count = len(df)
+    return edu_files, test_files, cor_files, final_row_count
 
 def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None, max_rows_per_class=None, percent_edu=None, percent_test=None, percent_correct=None):
     """
@@ -333,9 +337,9 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     initialize_output_directory(output_folder)
 
     # Шаг 2: Чтение файла
-    df = read_file(file_name, source_folder)
+    df, initial_row_count = read_file(file_name, source_folder)
     #Удаление дубликатов
-    df = remove_duplicates(df, class_column, excluded_columns, ignored_columns, instance_column)
+    df, duplicates_count, percent_duplicates = remove_duplicates(df, class_column, excluded_columns, ignored_columns, instance_column)
 
     # Шаг 3: Подготовка DataFrame - удаляет ненужные колонки
     df = prepare_df(df, excluded_columns, instance_column)
@@ -348,16 +352,15 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     df = calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits)
 
     # Шаг 6: Сохранение и перестановка колонок перед сохранением
-    edu_files, test_files, cor_files = save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
+    edu_files, test_files, cor_files, final_row_count = save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
   
     # Шаг 7: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
     print(columns_info.to_string(index=False))
 
     #Сохранение JSON
-    output_json_path = os.path.join(output_folder, "process_info.json")
     process_info = {
-        "time_started": datetime.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "parameters": {
             "file_name": file_name,
             "class_column": class_column,
@@ -370,6 +373,12 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
             "percent_test": percent_test,
             "percent_correct": percent_correct
         },
+        "initial_row_count": initial_row_count,
+        "duplicates": {
+            "initial_count": duplicates_count,
+            "initial_percent": percent_duplicates
+        },
+        "final_row_count": final_row_count,
         "paths": {
             "source_folder": source_folder,
             "output_folder": output_folder
@@ -378,7 +387,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
         "test_files": test_files,
         "cor_files": cor_files
     }
-    save_json(process_info, output_json_path)
+    save_json(process_info, os.path.join(output_folder, "process_info.json"))
 
 
 #######################################################################
