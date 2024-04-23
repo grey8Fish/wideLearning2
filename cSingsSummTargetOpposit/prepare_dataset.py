@@ -191,6 +191,10 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
     # Шаги 2-4: Обработка каждой колонки данных, исключая колонки класса и экземпляра
     for column in df.columns:
         if column not in columns_to_exclude:
+            # Замена inf и -inf на NaN и удаление строк с NaN
+            df[column].replace([np.inf, -np.inf], np.nan, inplace=True)
+            df.dropna(subset=[column], inplace=True)
+
             # Если задано макс. количество значащих цифр, округляем
             if significant_digits is not None and get_decimal_places(df[column]) > 0:
                 df[column] = df[column].apply(lambda x: round(x, significant_digits - int(math.floor(math.log10(abs(x)))) - 1) if x != 0 else 0)
@@ -207,8 +211,8 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
             # Шаг 4: Вычитание половины максимального значения из каждого элемента столбца
             half_max = df[column].max() / 2
             df[column] -= half_max
-    
-    # Поиск глобального максимума после шагов 2-4
+
+    # Поиск глобального максимума после шагов 2-4 
     global_max = df.drop(columns_to_exclude, axis=1).max().max()
     
     # Шаг 5: Масштабирование данных относительно глобального максимума
@@ -404,7 +408,7 @@ if __name__ == "__main__":
     file_name = "ionosphere4.csv"     # Имя файла (с расширением)
     class_column = "goodBad"            # Целевая колонка
     #instance_column = "Id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    #significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    significant_digits = 5             # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
