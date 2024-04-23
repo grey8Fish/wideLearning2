@@ -66,14 +66,16 @@ def initialize_output_directory(output_folder='output'):
 
     :param output_folder: Название выходной директории. По умолчанию 'output'.
     """
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    output_folder = f"output//dataset_{os.path.splitext(file_name)[0]}_{timestamp}"
 
     if os.path.exists(output_folder):
-        pass
-        #Почистить папку
-        #for file in os.listdir(output_folder):
-            #os.remove(os.path.join(output_folder, file))
+        for file in os.listdir(output_folder):
+            os.remove(os.path.join(output_folder, file))
     else:
         os.makedirs(output_folder)
+
+    return output_folder
 
 
 def prepare_df(df, excluded_columns=None, instance_column=None):
@@ -334,8 +336,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     """
     # Шаг 1: Инициализация выходной директории
     source_folder = 'sources'
-    output_folder = 'output'
-    initialize_output_directory(output_folder)
+    output_folder = initialize_output_directory(file_name)
 
     # Шаг 2: Чтение файла
     df, initial_row_count = read_file(file_name, source_folder)
@@ -400,10 +401,10 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "WineQT.csv"     # Имя файла (с расширением)
-    class_column = "quality"            # Целевая колонка
-    instance_column = "Id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    file_name = "ionosphere4.csv"     # Имя файла (с расширением)
+    class_column = "goodBad"            # Целевая колонка
+    #instance_column = "Id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+    #significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
