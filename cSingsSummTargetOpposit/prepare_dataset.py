@@ -103,6 +103,7 @@ def remove_duplicates(df, class_column, excluded_columns=None, ignored_columns=N
     columns_to_consider = df.columns.difference([class_column] + (excluded_columns or []) + (ignored_columns or []) + ([instance_column] if instance_column else []))
     df.drop_duplicates(subset=columns_to_consider, inplace=True)
     duplicates_count = initial_row_count - len(df)
+    percent_duplicates = 0
     if duplicates_count > 0:
         percent_duplicates = (duplicates_count / initial_row_count) * 100
         print(f"В исходном файле обнаружены дубликаты: {duplicates_count} строк удалено ({percent_duplicates:.2f}%)")
@@ -409,9 +410,9 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "milknew.csv"     # Имя файла (с расширением)
-    class_column = "Grade"            # Целевая колонка
-    #instance_column = "Id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+    file_name = "cirrhosis.csv"     # Имя файла (с расширением)
+    class_column = "Stage"            # Целевая колонка
+    instance_column = "ID"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
     #significant_digits = 5             # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
