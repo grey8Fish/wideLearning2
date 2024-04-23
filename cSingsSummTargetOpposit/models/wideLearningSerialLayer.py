@@ -223,23 +223,23 @@ class wideLearningSerialLayer:
 		print(a)'''
 		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
 	#Контрастирование весов. Делит веса на 2 без изменения количества отсеченных.
-    def contrastingWeights(self, oppoCat, targCat, countCutOffOpposit, countCutOffTarget):
-        countCutOffPrev = countCutOffOpposit + countCutOffTarget
-        qq = 0
-        while qq < 1:
-            self.currentWeightsInit //= 2
-            nTargMax = self.calcNoTarMax(targCat)                    #расчет количества отсеченных
-            countCutOffTarg = self.calcCutOffSignTarget(targCat, nTargMax)
-            nOppoMin = self.calcNoOppMin(oppoCat)
-            countCutOffOppo = self.calcCutOffSignOpposit(oppoCat, nOppoMin)
-            countCutOffCurr = countCutOffTarg + countCutOffOppo#расчет количества отсеченных
-            if countCutOffCurr == countCutOffPrev:
-                wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
-            else:
-                wlsl.currentWeightsInit = wlsl.previousWeightsInit.copy()
-                break
-            qq += 1
-        countCutOffPrev = 9
+	def contrastingWeights(self, oppoCat, targCat, countCutOffOpposit, countCutOffTarget):
+		countCutOffPrev = countCutOffOpposit + countCutOffTarget
+		qq = 0
+		while qq < 1:
+			self.currentWeightsInit //= 2
+			nTargMax = self.calcNoTarMax(targCat)                    #расчет количества отсеченных
+			countCutOffTarg = self.calcCutOffSignTarget(targCat, nTargMax)
+			nOppoMin = self.calcNoOppMin(oppoCat)
+			countCutOffOppo = self.calcCutOffSignOpposit(oppoCat, nOppoMin)
+			countCutOffCurr = countCutOffTarg + countCutOffOppo#расчет количества отсеченных
+			if countCutOffCurr == countCutOffPrev:
+				wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
+			else:
+				wlsl.currentWeightsInit = wlsl.previousWeightsInit.copy()
+				break
+			qq += 1
+		countCutOffPrev = 9
 	#Градиентный спуск сканированием, наивный вариант
 	def  gradientDescentScanning(self, oppoCat, noOppoMin, targCat, noTargMax, cutOffOppo, cutOffTarg):
 		oppoMax = self.setColCutOffSignOpposit(oppoCat, noOppoMin)
@@ -345,7 +345,10 @@ class wideLearningSerialLayer:
 				minEE = self.bestWeights[qq][-1]
 				ww = qq
 			qq += 1
-		self.initColScalarMul(self.previousWeightsRefined)			
+		self.initColScalarMul(self.previousWeightsRefined)		
+		bb = self.getMinMaxScalarMul()
+		oppoCat = int(bb[0])
+		targCat = int(bb[1])
 		nTargMax = self.calcNoTarMax(targCat)					#расчет количества отсеченных
 		countCutOffTarget = self.calcCutOffSignTarget(targCat, nTargMax)
 		nOppoMin = self.calcNoOppMin(oppoCat)
