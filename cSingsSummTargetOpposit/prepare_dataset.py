@@ -233,11 +233,12 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
             unique_values = len(df[column].unique())
             min_value = df[column].min()
             max_value = df[column].max()
-            columns_data.append({'Column Name': column, 
-                                 'ScaleFactor': scale_factor, 
-                                 'UniqueCount': unique_values, 
-                                 'Min': min_value, 
-                                 'Max': max_value})
+            columns_data.append({
+                'Column Name': column,
+                'ScaleFactor': float(scale_factor),  
+                'UniqueCount': int(unique_values),  
+                'Min': int(min_value), 
+                'Max': int(max_value)})
             
     return df
 
@@ -401,7 +402,8 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
             "TrainingFiles": edu_files,
             "TestingFiles": test_files,
             "ValidationFiles": cor_files
-        }
+        },
+        "ColumnsData": columns_data  
     }
     save_json(process_info, os.path.join(output_folder, "_process_info.json"))
 
