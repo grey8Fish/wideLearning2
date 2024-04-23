@@ -8,6 +8,7 @@ import pandas as pd
 import os
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+import json
 
 
 def read_file(file_name, source_folder):
@@ -33,6 +34,11 @@ def read_file(file_name, source_folder):
         return pd.read_excel(file_path)
     else:
         raise ValueError(f"Unsupported file format: {file_extension}")
+
+
+def save_json(data, file_path):
+    with open(file_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
 
 def get_decimal_places(series):
@@ -241,7 +247,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     """
     # Определение timestamp для именования файлов
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")    
-
+ 
     # Добавление RowNum
     df['RowNum'] = np.arange(len(df))
 
@@ -286,7 +292,9 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
 
             # Генерация названия файла с учетом класса и части
             subset_file_name = f"{os.path.splitext(file_name)[0]}_class_{class_val}_{name_part}_{timestamp}.csv"
+            full_path = os.path.join(output_folder, subset_file_name)
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
+            
 
 
 def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None, max_rows_per_class=None, percent_edu=None, percent_test=None, percent_correct=None):
@@ -333,21 +341,44 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     columns_info = pd.DataFrame(columns_data)
     print(columns_info.to_string(index=False))
 
+    #Сохранение JSON
+    output_json_path = os.path.join(output_folder, "process_info.json")
+    process_info = {
+        "time_started": datetime.now().isoformat(),
+        "parameters": {
+            "file_name": file_name,
+            "class_column": class_column,
+            "instance_column": instance_column if 'instance_column' in locals() else None,
+            "excluded_columns": locals().get('excluded_columns', []),
+            "ignored_columns": locals().get('ignored_columns', []),
+            "significant_digits": significant_digits if 'significant_digits' in locals() else None,
+            "max_rows_per_class": max_rows_per_class if 'max_rows_per_class' in locals() else None,
+            "percent_edu": percent_edu,
+            "percent_test": percent_test,
+            "percent_correct": percent_correct
+        },
+        "paths": {
+            "source_folder": source_folder,
+            "output_folder": output_folder
+        }
+    }
+    save_json(process_info, output_json_path)
+
 
 #######################################################################
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "milknew.csv"     # Имя файла (с расширением)
-    class_column = "Grade"            # Целевая колонка
+    file_name = "WineQT.csv"     # Имя файла (с расширением)
+    class_column = "quality"            # Целевая колонка
     instance_column = "Id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    #significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
-    percent_edu = 100       
-    percent_test = 0
-    percent_correct = 0
+    percent_edu = 33       
+    percent_test = 33
+    percent_correct = 33
 
    
 #   file_name = "milknew.csv" # Имя файла (с расширением)
