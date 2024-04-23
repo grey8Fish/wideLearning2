@@ -247,6 +247,11 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     """
     # Определение timestamp для именования файлов
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")    
+    
+    # Списки файлов
+    edu_files = []
+    test_files = []
+    cor_files = []
  
     # Добавление RowNum
     df['RowNum'] = np.arange(len(df))
@@ -295,7 +300,15 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
             full_path = os.path.join(output_folder, subset_file_name)
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
             
+            # Заполняем списки файлов для вывода
+            if name_part == 'edu':
+                edu_files.append(full_path)
+            elif name_part == 'test':
+                test_files.append(full_path)
+            elif name_part == 'cor':
+                cor_files.append(full_path)
 
+    return edu_files, test_files, cor_files
 
 def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None, max_rows_per_class=None, percent_edu=None, percent_test=None, percent_correct=None):
     """
@@ -335,7 +348,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     df = calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits)
 
     # Шаг 6: Сохранение и перестановка колонок перед сохранением
-    save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
+    edu_files, test_files, cor_files = save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
   
     # Шаг 7: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
@@ -348,11 +361,11 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
         "parameters": {
             "file_name": file_name,
             "class_column": class_column,
-            "instance_column": instance_column if 'instance_column' in locals() else None,
-            "excluded_columns": locals().get('excluded_columns', []),
-            "ignored_columns": locals().get('ignored_columns', []),
-            "significant_digits": significant_digits if 'significant_digits' in locals() else None,
-            "max_rows_per_class": max_rows_per_class if 'max_rows_per_class' in locals() else None,
+            "instance_column": instance_column,
+            "excluded_columns": excluded_columns,
+            "ignored_columns": ignored_columns,
+            "significant_digits": significant_digits,
+            "max_rows_per_class": max_rows_per_class,
             "percent_edu": percent_edu,
             "percent_test": percent_test,
             "percent_correct": percent_correct
@@ -360,7 +373,10 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
         "paths": {
             "source_folder": source_folder,
             "output_folder": output_folder
-        }
+        },
+        "edu_files": edu_files,
+        "test_files": test_files,
+        "cor_files": cor_files
     }
     save_json(process_info, output_json_path)
 
