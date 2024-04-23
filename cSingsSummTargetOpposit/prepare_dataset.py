@@ -8,6 +8,7 @@ import pandas as pd
 import os
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+import json
 
 
 def read_file(file_name, source_folder):
@@ -24,15 +25,23 @@ def read_file(file_name, source_folder):
 
     # Чтение файла в зависимости от его формата
     if file_extension == '.txt':
-        return pd.read_csv(file_path, sep='\t')
+        df = pd.read_csv(file_path, sep='\t')
     elif file_extension == '.csv':
-        return pd.read_csv(file_path)
+        df = pd.read_csv(file_path)
     elif file_extension == '.tsv':
-        return pd.read_csv(file_path, sep='\t')
+        df = pd.read_csv(file_path, sep='\t')
     elif file_extension in ['.xls', '.xlsx']:
-        return pd.read_excel(file_path)
+        df = pd.read_excel(file_path)
     else:
         raise ValueError(f"Unsupported file format: {file_extension}")
+    
+    initial_row_count = len(df)  # Сохраняем исходное количество строк
+    return df, initial_row_count
+
+
+def save_json(data, file_path):
+    with open(file_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
 
 def get_decimal_places(series):
@@ -57,14 +66,16 @@ def initialize_output_directory(output_folder='output'):
 
     :param output_folder: Название выходной директории. По умолчанию 'output'.
     """
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    output_folder = f"output//dataset_{os.path.splitext(file_name)[0]}_{timestamp}"
 
     if os.path.exists(output_folder):
-        pass
-        #Почистить папку
-        #for file in os.listdir(output_folder):
-            #os.remove(os.path.join(output_folder, file))
+        for file in os.listdir(output_folder):
+            os.remove(os.path.join(output_folder, file))
     else:
         os.makedirs(output_folder)
+
+    return output_folder
 
 
 def prepare_df(df, excluded_columns=None, instance_column=None):
@@ -92,13 +103,51 @@ def remove_duplicates(df, class_column, excluded_columns=None, ignored_columns=N
     columns_to_consider = df.columns.difference([class_column] + (excluded_columns or []) + (ignored_columns or []) + ([instance_column] if instance_column else []))
     df.drop_duplicates(subset=columns_to_consider, inplace=True)
     duplicates_count = initial_row_count - len(df)
+    percent_duplicates = 0
     if duplicates_count > 0:
         percent_duplicates = (duplicates_count / initial_row_count) * 100
         print(f"В исходном файле обнаружены дубликаты: {duplicates_count} строк удалено ({percent_duplicates:.2f}%)")
-    return df
+    return df, duplicates_count, percent_duplicates
 
 
 def map_df(df, file_name, output_folder, class_column):
+    """
+    Маппинг текстовых данных в DataFrame и сохранение маппингов в один JSON файл.
+    """
+    mappings = {}
+
+    # Обработка каждой колонки в DataFrame
+    for column in df.columns:
+        if df[column].dtype == object and column != class_column:
+            unique_values = set(df[column].dropna().unique())
+            yes_no_values = {'Y', 'N'}
+            
+            # Проверка на наличие значений Y/N и максимум одного дополнительного значения
+            if yes_no_values.issubset(unique_values) and len(unique_values - yes_no_values) <= 1:
+                # Определение маппинга для Yes/No значений
+                yes_no_mapping = {val: (1 if val == 'Y' else -1 if val == 'N' else 0) for val in unique_values}
+                yes_no_mapping['NA'] = 0  # Добавляем значение для NA
+                df[column] = df[column].map(yes_no_mapping)
+                
+                # Сохранение маппинга в общий словарь
+                mappings[column] = yes_no_mapping
+                continue  # Пропускаем оставшуюся часть цикла для этой колонки
+
+            # Создание маппинга для обычных текстовых значений
+            else:
+                general_mapping = {value: i for i, value in enumerate(unique_values)}
+                df[column] = df[column].map(general_mapping)
+                
+                # Сохранение маппинга в общий словарь
+                mappings[column] = general_mapping
+
+    # Сохранение всех маппингов в один JSON файл
+    save_json(mappings, os.path.join(output_folder, f"{os.path.splitext(file_name)[0]}_mappings.json"))
+
+    return df
+
+
+def map_df_csv(df, file_name, output_folder, class_column):
     """
     Маппинг текстовых данных в DataFrame.
     :param df: DataFrame для маппинга.
@@ -106,6 +155,7 @@ def map_df(df, file_name, output_folder, class_column):
     :param output_folder: Папка для сохранения файлов маппинга.
     :param class_column: Название колонки, содержащей классы (целевая переменная).
     :return: DataFrame с маппингом текстовых данных.
+    Сохранение в CSV. Не используется.
     """
 
     # Шаг 1: Замена текстовых классов числовыми. Создание словаря для сопоставления текстовых классов с числовыми индексами.
@@ -180,6 +230,10 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
     # Шаги 2-4: Обработка каждой колонки данных, исключая колонки класса и экземпляра
     for column in df.columns:
         if column not in columns_to_exclude:
+            # Замена inf и -inf на NaN и удаление строк с NaN
+            df[column].replace([np.inf, -np.inf], np.nan, inplace=True)
+            df.dropna(subset=[column], inplace=True)
+
             # Если задано макс. количество значащих цифр, округляем
             if significant_digits is not None and get_decimal_places(df[column]) > 0:
                 df[column] = df[column].apply(lambda x: round(x, significant_digits - int(math.floor(math.log10(abs(x)))) - 1) if x != 0 else 0)
@@ -196,8 +250,8 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
             # Шаг 4: Вычитание половины максимального значения из каждого элемента столбца
             half_max = df[column].max() / 2
             df[column] -= half_max
-    
-    # Поиск глобального максимума после шагов 2-4
+
+    # Поиск глобального максимума после шагов 2-4 
     global_max = df.drop(columns_to_exclude, axis=1).max().max()
     
     # Шаг 5: Масштабирование данных относительно глобального максимума
@@ -217,11 +271,12 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
             unique_values = len(df[column].unique())
             min_value = df[column].min()
             max_value = df[column].max()
-            columns_data.append({'Column Name': column, 
-                                 'ScaleFactor': scale_factor, 
-                                 'UniqueCount': unique_values, 
-                                 'Min': min_value, 
-                                 'Max': max_value})
+            columns_data.append({
+                'Column Name': column,
+                'ScaleFactor': float(scale_factor),  
+                'UniqueCount': int(unique_values),  
+                'Min': int(min_value), 
+                'Max': int(max_value)})
             
     return df
 
@@ -241,7 +296,12 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     """
     # Определение timestamp для именования файлов
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")    
-
+    
+    # Списки файлов
+    edu_files = []
+    test_files = []
+    cor_files = []
+ 
     # Добавление RowNum
     df['RowNum'] = np.arange(len(df))
 
@@ -253,6 +313,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     initial_row_count = len(df)
     duplicates_mask = df.drop(columns=[class_column, 'RowNum']).duplicated(keep='first')
     num_duplicates = duplicates_mask.sum()  # Подсчет количества дубликатов (без первых уникальных вхождений)
+    percent_duplicates = 0
     if num_duplicates > 0:
         percent_duplicates = (num_duplicates / initial_row_count) * 100
         print(f'В обработанной выборке обнаружены и удалены {num_duplicates} дубликатов. ({percent_duplicates:.2f}%)')
@@ -275,7 +336,7 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
         rows_for_edu = round(n_rows * percent_edu / 100)
         rows_for_test = round(n_rows * percent_test / 100)
         rows_for_correct = n_rows - rows_for_edu - rows_for_test
-
+        
         #rows_per_file = max(n_rows // 3, 1)  # Деление на 3 части, но не меньше одной строки на файл
 
         # Создание и сохранение файлов по частям
@@ -287,7 +348,18 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
             # Генерация названия файла с учетом класса и части
             subset_file_name = f"{os.path.splitext(file_name)[0]}_class_{class_val}_{name_part}_{timestamp}.csv"
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
-
+            
+            # Заполняем списки файлов для вывода
+            file_info = {"file_name": subset_file_name, "num_instances": rows_count}
+            if name_part == 'edu':
+                edu_files.append(file_info)
+            elif name_part == 'test':
+                test_files.append(file_info)
+            elif name_part == 'cor':
+                cor_files.append(file_info)
+                
+    final_row_count = len(df)
+    return edu_files, test_files, cor_files, final_row_count, num_duplicates, percent_duplicates
 
 def process(file_name, class_column, instance_column=None, excluded_columns=None, ignored_columns=None, significant_digits=None, max_rows_per_class=None, percent_edu=None, percent_test=None, percent_correct=None):
     """
@@ -308,14 +380,13 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     """
     # Шаг 1: Инициализация выходной директории
     source_folder = 'sources'
-    output_folder = 'output'
-    initialize_output_directory(output_folder)
+    output_folder = initialize_output_directory(file_name)
 
     # Шаг 2: Чтение файла
-    df = read_file(file_name, source_folder)
+    df, initial_row_count = read_file(file_name, source_folder)
     #Удаление дубликатов
-    df = remove_duplicates(df, class_column, excluded_columns, ignored_columns, instance_column)
-
+    df, duplicates_count, percent_duplicates = remove_duplicates(df, class_column, excluded_columns, ignored_columns, instance_column)
+    
     # Шаг 3: Подготовка DataFrame - удаляет ненужные колонки
     df = prepare_df(df, excluded_columns, instance_column)
     
@@ -327,27 +398,68 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     df = calculate_columns(df, class_column, ignored_columns, columns_data, significant_digits)
 
     # Шаг 6: Сохранение и перестановка колонок перед сохранением
-    save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
+    edu_files, test_files, cor_files, final_row_count, post_process_duplicates, post_process_percent_duplicates = save_and_rearrange_df(
+        df, output_folder, file_name, class_column, max_rows_per_class, percent_edu, percent_test, percent_correct)
   
     # Шаг 7: Вывод информации о колонках после обработки
     columns_info = pd.DataFrame(columns_data)
     print(columns_info.to_string(index=False))
+
+    #Сохранение JSON
+    process_info = {
+        "ProcessStartTime": datetime.now().strftime("%d.%m.%Y %H:%M"),
+        "RunParams": {
+            "FileName": file_name,
+            "ClassColumn": class_column,
+            "InstanceColumn": instance_column,
+            "ExcludedColumns": excluded_columns or [],
+            "IgnoredColumns": ignored_columns or [],
+            "SignificantDigits": significant_digits,
+            "MaxRowsPerClass": max_rows_per_class,
+            "TrainingSetPercentage": f"{percent_edu:.2f}%",
+            "TestingSetPercentage": f"{percent_test:.2f}%",
+            "ValidationSetPercentage": f"{percent_correct:.2f}%"
+        },
+        "InitialStatistics": {
+            "RowCount": int(initial_row_count),
+            "DuplicateInfo": {
+                "InitialDuplicatesCount": int(duplicates_count),
+                "InitialDuplicatesPercentage": f"{float(percent_duplicates):.2f}%",
+                "PostProcessingDuplicatesCount": int(post_process_duplicates),
+                "PostProcessingDuplicatesPercentage": f"{float(post_process_percent_duplicates):.2f}%"
+            }
+        },
+        "FinalStatistics": {
+            "RowCount": int(final_row_count)
+        },
+        "FilePaths": {
+            "SourceFolder": source_folder,
+            "OutputFolder": output_folder
+        },
+        "FileGroups": {
+            "TrainingFiles": edu_files,
+            "TestingFiles": test_files,
+            "ValidationFiles": cor_files
+        },
+        "ColumnsData": columns_data  
+    }
+    save_json(process_info, os.path.join(output_folder, "_process_info.json"))
 
 
 #######################################################################
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "milknew.csv"     # Имя файла (с расширением)
-    class_column = "Grade"            # Целевая колонка
-    instance_column = "Id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    #significant_digits = 3              # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    file_name = "cirrhosis.csv"     # Имя файла (с расширением)
+    class_column = "Stage"            # Целевая колонка
+    instance_column = "ID"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
+    #significant_digits = 5             # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
-    percent_edu = 100       
-    percent_test = 0
-    percent_correct = 0
+    percent_edu = 33       
+    percent_test = 33
+    percent_correct = 33
 
    
 #   file_name = "milknew.csv" # Имя файла (с расширением)
