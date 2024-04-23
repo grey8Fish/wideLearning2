@@ -297,16 +297,16 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
 
             # Генерация названия файла с учетом класса и части
             subset_file_name = f"{os.path.splitext(file_name)[0]}_class_{class_val}_{name_part}_{timestamp}.csv"
-            full_path = os.path.join(output_folder, subset_file_name)
             subset_df.to_csv(os.path.join(output_folder, subset_file_name), index=False)
             
             # Заполняем списки файлов для вывода
+            file_info = {"file_name": subset_file_name, "num_instances": rows_count}
             if name_part == 'edu':
-                edu_files.append(full_path)
+                edu_files.append(file_info)
             elif name_part == 'test':
-                test_files.append(full_path)
+                test_files.append(file_info)
             elif name_part == 'cor':
-                cor_files.append(full_path)
+                cor_files.append(file_info)
 
     return edu_files, test_files, cor_files
 
