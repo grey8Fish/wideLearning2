@@ -367,48 +367,52 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
 
     #Сохранение JSON
     process_info = {
-        "time_started": datetime.now().isoformat(),
-        "parameters": {
-            "file_name": file_name,
-            "class_column": class_column,
-            "instance_column": instance_column,
-            "excluded_columns": excluded_columns,
-            "ignored_columns": ignored_columns,
-            "significant_digits": significant_digits,
-            "max_rows_per_class": max_rows_per_class,
-            "percent_edu": percent_edu,
-            "percent_test": percent_test,
-            "percent_correct": percent_correct
+        "ProcessStartTime": datetime.now().strftime("%d.%m.%Y %H:%M"),
+        "RunParams": {
+            "FileName": file_name,
+            "ClassColumn": class_column,
+            "InstanceColumn": instance_column,
+            "ExcludedColumns": excluded_columns or [],
+            "IgnoredColumns": ignored_columns or [],
+            "SignificantDigits": significant_digits,
+            "MaxRowsPerClass": max_rows_per_class,
+            "TrainingSetPercentage": f"{percent_edu:.2f}%",
+            "TestingSetPercentage": f"{percent_test:.2f}%",
+            "ValidationSetPercentage": f"{percent_correct:.2f}%"
         },
-        "initial_row_count": int(initial_row_count),
-        "initial_duplicates": {
-            "count": int(duplicates_count),
-            "percent": float(percent_duplicates)
+        "InitialStatistics": {
+            "RowCount": int(initial_row_count),
+            "DuplicateInfo": {
+                "InitialDuplicatesCount": int(duplicates_count),
+                "InitialDuplicatesPercentage": f"{float(percent_duplicates):.2f}%",
+                "PostProcessingDuplicatesCount": int(post_process_duplicates),
+                "PostProcessingDuplicatesPercentage": f"{float(post_process_percent_duplicates):.2f}%"
+            }
         },
-        "post_process_duplicates": {
-            "count": int(post_process_duplicates),
-            "percent": float(post_process_percent_duplicates)
+        "FinalStatistics": {
+            "RowCount": int(final_row_count)
         },
-        "final_row_count": int(final_row_count),
-        "paths": {
-            "source_folder": source_folder,
-            "output_folder": output_folder
+        "FilePaths": {
+            "SourceFolder": source_folder,
+            "OutputFolder": output_folder
         },
-        "edu_files": edu_files,
-        "test_files": test_files,
-        "cor_files": cor_files
+        "FileGroups": {
+            "TrainingFiles": edu_files,
+            "TestingFiles": test_files,
+            "ValidationFiles": cor_files
+        }
     }
-    save_json(process_info, os.path.join(output_folder, "process_info.json"))
+    save_json(process_info, os.path.join(output_folder, "_process_info.json"))
 
 
 #######################################################################
 # Настройка здесь
 # В случае если получили ошибку на какой-либо колонке, добавляем её в excluded_columns    
 if __name__ == "__main__":
-    file_name = "ionosphere4.csv"     # Имя файла (с расширением)
-    class_column = "goodBad"            # Целевая колонка
+    file_name = "milknew.csv"     # Имя файла (с расширением)
+    class_column = "Grade"            # Целевая колонка
     #instance_column = "Id"            # ID колонка, любой итератор (если есть). Если нет - комментируем всю строчку или оставляем пустой.
-    significant_digits = 5             # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
+    #significant_digits = 5             # Максимальное количество значащих цифр перед округлением. Можно закомментировать, будет использоваться максимальное по датасету.
     #max_rows_per_class = 1000           # Устанавливаем ограничение количества строк в одном классе. Можно закомментировать, опционально.
     
     # Разделение выборки, в процентах
