@@ -112,12 +112,50 @@ def remove_duplicates(df, class_column, excluded_columns=None, ignored_columns=N
 
 def map_df(df, file_name, output_folder, class_column):
     """
+    Маппинг текстовых данных в DataFrame и сохранение маппингов в один JSON файл.
+    """
+    mappings = {}
+
+    # Обработка каждой колонки в DataFrame
+    for column in df.columns:
+        if df[column].dtype == object and column != class_column:
+            unique_values = set(df[column].dropna().unique())
+            yes_no_values = {'Y', 'N'}
+            
+            # Проверка на наличие значений Y/N и максимум одного дополнительного значения
+            if yes_no_values.issubset(unique_values) and len(unique_values - yes_no_values) <= 1:
+                # Определение маппинга для Yes/No значений
+                yes_no_mapping = {val: (1 if val == 'Y' else -1 if val == 'N' else 0) for val in unique_values}
+                yes_no_mapping['NA'] = 0  # Добавляем значение для NA
+                df[column] = df[column].map(yes_no_mapping)
+                
+                # Сохранение маппинга в общий словарь
+                mappings[column] = yes_no_mapping
+                continue  # Пропускаем оставшуюся часть цикла для этой колонки
+
+            # Создание маппинга для обычных текстовых значений
+            else:
+                general_mapping = {value: i for i, value in enumerate(unique_values)}
+                df[column] = df[column].map(general_mapping)
+                
+                # Сохранение маппинга в общий словарь
+                mappings[column] = general_mapping
+
+    # Сохранение всех маппингов в один JSON файл
+    save_json(mappings, os.path.join(output_folder, f"{os.path.splitext(file_name)[0]}_mappings.json"))
+
+    return df
+
+
+def map_df_csv(df, file_name, output_folder, class_column):
+    """
     Маппинг текстовых данных в DataFrame.
     :param df: DataFrame для маппинга.
     :param file_name: Имя файла, используемое для генерации имен файлов маппинга.
     :param output_folder: Папка для сохранения файлов маппинга.
     :param class_column: Название колонки, содержащей классы (целевая переменная).
     :return: DataFrame с маппингом текстовых данных.
+    Сохранение в CSV. Не используется.
     """
 
     # Шаг 1: Замена текстовых классов числовыми. Создание словаря для сопоставления текстовых классов с числовыми индексами.
