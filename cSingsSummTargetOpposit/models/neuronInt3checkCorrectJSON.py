@@ -1,7 +1,8 @@
 import numpy as np
 import json
+import pandas as pd
 
-class neuronInt3checkCorrectionJSON:
+class NeuronInt3CheckCorrectionJSON:
     def __init__(self, vector_size):
         self.target_category = None
         self.opposite_category = None
@@ -21,35 +22,75 @@ class neuronInt3checkCorrectionJSON:
         self.weight_vector = np.array(weight_vector)
 
     def check_instance(self, input_vector, current_category):
-        # Убедимся, что input_vector имеет подходящую длину
         if len(input_vector) < len(self.weight_vector):
             raise ValueError("Длина input_vector меньше длины weight_vector.")
-
-        # Вычисляем скалярное произведение только для соответствующих частей векторов
         scalar_product = np.dot(self.weight_vector, input_vector[:len(self.weight_vector)])
-
         if ((current_category != self.target_category) and (scalar_product > self.right_border)) or \
            ((current_category != self.opposite_category) and (scalar_product < self.left_border)):
-            return False  # Ошибка в классификации
-        return True  # Корректная классификация
+            return False
+        return True
+    
+    def collect_weights(data):
+        weights_array = []
+        for neuron in data['neurons']:
+            weights = list(map(int, neuron['previous_weights'].split(', ')))
+            weights_array.append(weights)
+        return weights_array
 
 # Загрузка данных из JSON файла
 with open("output\\weights_apple_quality_20240424135749.json", "r") as file:
     data = json.load(file)
-
-# Пример входного вектора для проверки
-input_vector = np.array([2380,-946,-1597,379,-3310,-403,-1107,1])  
-
-# Проход по каждому нейрону в JSON файле
-for neuron_data in data['neurons']:
-    checker = neuronInt3checkCorrectionJSON(len(neuron_data['previous_weights'].split(', ')))
-    checker.set_categories(int(neuron_data['category_left']), int(neuron_data['category_right']))
-    checker.set_borders(neuron_data['threshold_left'], neuron_data['threshold_right'])
-    checker.set_weights(list(map(int, neuron_data['previous_weights'].split(', '))))
     
-    # Проверка входного вектора
-    if not checker.check_instance(input_vector, input_vector[-1]):
-        print(f"Ошибка в нейроне {neuron_data['neuron_number']} при входном векторе {input_vector[-1]}")
-    else:
-        print(f"Нейрон {neuron_data['neuron_number']} корректно классифицировал входные данные.")
+# Сбор массива весов
+weights_array = NeuronInt3CheckCorrectionJSON.collect_weights(data)
 
+# Чтение данных из CSV файла
+csv_file = "outputApple400\\apple_quality_class_0_test_20240418154718.csv"
+df = pd.read_csv(csv_file)
+
+
+# Инициализация списка для результатов
+summary_results = []
+
+# Проход по каждой строке в CSV файле
+for index, row in df.iterrows():
+    input_vector = row[:-1].to_numpy()
+    current_category = row.iloc[-1]
+    source_rownum = row.iloc[-2]
+    correct_count = 0
+    total_neurons = len(data['neurons'])
+
+    # Проход по каждому нейрону в JSON файле
+    for neuron_data in data['neurons']:
+        checker = NeuronInt3CheckCorrectionJSON(len(neuron_data['previous_weights'].split(', ')))
+        checker.set_categories(int(neuron_data['category_left']), int(neuron_data['category_right']))
+        checker.set_borders(neuron_data['threshold_left'], neuron_data['threshold_right'])
+        checker.set_weights(list(map(int, neuron_data['previous_weights'].split(', '))))
+
+        # Проверка входного вектора
+        if checker.check_instance(input_vector, current_category):
+            correct_count += 1
+
+    # Расчёт процента корректных нейронов
+    correct_percentage = (correct_count / total_neurons) * 100
+
+    # Добавление результатов в список
+    summary_results.append({
+        #'Row': index, 
+        'Source RowNum': source_rownum,
+        'Correct Neurons': correct_count, 
+        'Incorrect Neurons': total_neurons - correct_count, 
+        'Category': current_category, 
+        'Correct Percentage': f"{correct_percentage:.2f}%"
+    })
+
+# Создание DataFrame из списка результатов
+summary_df = pd.DataFrame(summary_results)
+
+# Настройки для отображения всех строк и столбцов DataFrame
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
+
+# Вывод таблицы с результатами
+print(summary_df)
