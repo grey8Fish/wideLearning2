@@ -21,7 +21,13 @@ class neuronInt3checkCorrectionJSON:
         self.weight_vector = np.array(weight_vector)
 
     def check_instance(self, input_vector, current_category):
-        scalar_product = np.dot(self.weight_vector, input_vector[:-1])
+        # Убедимся, что input_vector имеет подходящую длину
+        if len(input_vector) < len(self.weight_vector):
+            raise ValueError("Длина input_vector меньше длины weight_vector.")
+
+        # Вычисляем скалярное произведение только для соответствующих частей векторов
+        scalar_product = np.dot(self.weight_vector, input_vector[:len(self.weight_vector)])
+
         if ((current_category != self.target_category) and (scalar_product > self.right_border)) or \
            ((current_category != self.opposite_category) and (scalar_product < self.left_border)):
             return False  # Ошибка в классификации
@@ -32,7 +38,7 @@ with open("output\\weights_apple_quality_20240424135749.json", "r") as file:
     data = json.load(file)
 
 # Пример входного вектора для проверки
-input_vector = np.array([2380,-946,-1597,379,-3310,-403,-1107,1])  # Последний элемент - текущая категория???
+input_vector = np.array([2380,-946,-1597,379,-3310,-403,-1107,1])  
 
 # Проход по каждому нейрону в JSON файле
 for neuron_data in data['neurons']:
