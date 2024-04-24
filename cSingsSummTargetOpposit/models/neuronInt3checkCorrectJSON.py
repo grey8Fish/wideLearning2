@@ -45,7 +45,7 @@ with open("output\\weights_apple_quality_20240424135749.json", "r") as file:
 weights_array = NeuronInt3CheckCorrectionJSON.collect_weights(data)
 
 # Чтение данных из CSV файла
-csv_file = "outputApple400\\apple_quality_class_0_test_20240418154718.csv"
+csv_file = "outputApple400\\apple_quality_class_1_test_20240418154718.csv"
 df = pd.read_csv(csv_file)
 
 
@@ -74,19 +74,20 @@ for index, row in df.iterrows():
     # Расчёт процента корректных нейронов
     correct_percentage = (correct_count / total_neurons) * 100
 
+
     # Добавление результатов в список
     summary_results.append({
         #'Row': index, 
-        'Source RowNum': source_rownum,
-        'Correct Neurons': correct_count, 
-        'Incorrect Neurons': total_neurons - correct_count, 
+        'RowNumCsv': source_rownum,
+        'CorrectNeurons': correct_count, 
+        'IncorrectNeurons': total_neurons - correct_count, 
         'Category': current_category, 
-        'Correct Percentage': f"{correct_percentage:.2f}%"
+        'CorrectPercentage': f"{correct_percentage:.2f}%"
     })
 
 # Создание DataFrame из списка результатов
 summary_df = pd.DataFrame(summary_results)
-
+      
 # Настройки для отображения всех строк и столбцов DataFrame
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -94,3 +95,8 @@ pd.set_option('display.width', 1000)
 
 # Вывод таблицы с результатами
 print(summary_df)
+
+# Расчет средней точности
+average_correct_percentage = summary_df['CorrectPercentage'].str.rstrip('%').astype(float).mean()
+print()
+print(f"Средняя точность: {average_correct_percentage:.2f}%")
