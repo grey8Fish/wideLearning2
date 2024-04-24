@@ -38,14 +38,18 @@ class NeuronInt3CheckCorrectionJSON:
         return weights_array
 
 # Загрузка данных из JSON файла
-with open("output\\dataset_bodyPerformance_20240424201824\\weights_bodyPerformance_20240424202137.json", "r") as file:
+paths = []    
+with open("output\\dataset_bodyPerformance_20240424201824\\weights_bodyPerformance_20240424210221.json", "r") as file:
     data = json.load(file)
+    paths = data['file_names']
+# Замена '_edu_' на '_test_' в путях файлов
+paths = [path.replace("_edu_", "_test_") for path in paths]
     
 # Сбор массива весов
 weights_array = NeuronInt3CheckCorrectionJSON.collect_weights(data)
 
 # Чтение данных из CSV файла
-csv_file = "Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_A_test_20240424201826.csv"
+csv_file = paths[1]#"Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_A_test_20240424201826.csv"
 df = pd.read_csv(csv_file)
 
 

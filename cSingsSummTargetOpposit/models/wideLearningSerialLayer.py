@@ -10,7 +10,7 @@ import os
 import time
 
 class wideLearningSerialLayer:
-	def __init__(self, coClasses, maxInst, siVector, nameFile, timestamp):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
+	def __init__(self, coClasses, maxInst, siVector, nameFile, timestamp, common_path):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
 		self.maxInstance = maxInst		#Удвоенное максимальное количество экземпляров выборки
 		self.countClasses = coClasses	#количество классов
 		self.sizeVector = siVector		#длина вектора весов / количество столбцов выборки
@@ -28,7 +28,7 @@ class wideLearningSerialLayer:
 		self.inputsClassTraining = np.zeros((coClasses, maxInst, siVector+2), dtype=int)	#входные экземпляры обучающей выборки
 		self.vectorDeltasCurr = np.zeros(siVector, dtype=int)#вектора поправок весов 
 		self.vectorDeltasPrev = np.zeros(siVector, dtype=int)#в процедурах уточнения
-		self.json_best_weights_path = f'output/weights_best_{timestamp}.json'  
+		self.json_best_weights_path = os.path.join(common_path, f'weights_best_{timestamp}.json')
 		self.best_weights_data = []  
 	
 
@@ -416,7 +416,8 @@ if not os.path.exists(output_directory):
 
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
 timestamp = data_loader.get_timestamp()	
-wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp', timestamp)
+common_path = os.path.dirname(file_names[0])
+wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp', timestamp, common_path)
 wlsl.setColumnName(data_loader.get_column_names())
 wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
@@ -426,8 +427,8 @@ base_name = os.path.basename(file_names[0]).split('_class')[0]
 # Извлечение имени первого файла без расширения
 #base_file_name = base_name #os.path.splitext(os.path.basename(file_names[0]))[0]
 # Путь к файлу JSON
-temp_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}.temp.json'
-final_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}.json'
+temp_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}.temp.json'
+final_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}.json'
 
 nn = 2
 neuron_number = 0
@@ -522,7 +523,7 @@ while nn >= 2:
 	# Запись данных во временный JSON файл на каждом шаге
 	#with open(temp_output_file_path, 'w') as temp_json_file:
 	#	json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
-	temp_output_file_path = f'{output_directory}/weights_{base_name}_{timestamp}_{neuron_number}.temp.json' # Изменено для сохранения всех временных файлов
+	temp_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}_{neuron_number}.temp.json' # Изменено для сохранения всех временных файлов
 	with open(temp_output_file_path, 'w') as temp_json_file:
 		json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
 
@@ -570,7 +571,7 @@ time_delta = end_time - start_time
 total_time = str(time_delta) 
 final_output = {
 	"script_name": "wideLearningSerialLayer.py",
-    "file_names": data_loader.file_row_count,  
+    "file_names": file_names,  
 	"start_time": start_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время начала работы программы
     "end_time": end_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время окончания работы программы
 	"total_time_seconds": total_time,
