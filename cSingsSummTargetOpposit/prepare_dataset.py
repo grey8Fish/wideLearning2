@@ -481,6 +481,7 @@ if __name__ == "__main__":
     # Конец настройки
     # Создание словаря с аргументами для функции и проверками на существование аргумента
     process_args = {
+	    "script_name": "prepare_dataset.py",
         "file_name": file_name,
         "class_column": class_column,
         **({"instance_column": locals().get('instance_column')} if 'instance_column' in locals() else {}),  # Условное добавление instance_column с проверкой на существование
