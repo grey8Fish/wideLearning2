@@ -32,7 +32,7 @@ with open("output\\weights_apple_quality_20240424135749.json", "r") as file:
     data = json.load(file)
 
 # Пример входного вектора для проверки
-input_vector = np.array([-304,-623,1412,1432,2401,1,-2515,0])  # Последний элемент - текущая категория
+input_vector = np.array([2380,-946,-1597,379,-3310,-403,-1107,1])  # Последний элемент - текущая категория???
 
 # Проход по каждому нейрону в JSON файле
 for neuron_data in data['neurons']:
