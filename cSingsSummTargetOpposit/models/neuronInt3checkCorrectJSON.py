@@ -29,10 +29,20 @@ class NeuronInt3CheckCorrectionJSON:
            ((current_category != self.opposite_category) and (scalar_product < self.left_border)):
             return False
         return True
+    
+    def collect_weights(data):
+        weights_array = []
+        for neuron in data['neurons']:
+            weights = list(map(int, neuron['previous_weights'].split(', ')))
+            weights_array.append(weights)
+        return weights_array
 
 # Загрузка данных из JSON файла
 with open("output\\weights_apple_quality_20240424135749.json", "r") as file:
     data = json.load(file)
+    
+# Сбор массива весов
+weights_array = NeuronInt3CheckCorrectionJSON.collect_weights(data)
 
 # Чтение данных из CSV файла
 csv_file = "outputApple400\\apple_quality_class_0_test_20240418154718.csv"
