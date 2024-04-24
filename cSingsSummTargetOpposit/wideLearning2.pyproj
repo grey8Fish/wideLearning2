@@ -5,7 +5,7 @@
     <ProjectGuid>76ba8f24-6a19-4cd4-8054-1e792e77ba26</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>cSingsSummTargetOpposit.py</StartupFile>
+    <StartupFile>models/wideLearningSerialLayer.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
