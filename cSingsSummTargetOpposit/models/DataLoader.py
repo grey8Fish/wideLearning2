@@ -27,6 +27,7 @@ class DataLoader:
             ordinate_count (int): Количество ординат (столбцов) в данных.
         """
         self.file_names = file_names  # Список имен файлов CSV для обработки
+        self.file_row_count = {}      # Словарь для хранения количества строк по файлам
         self.classes_count = 0        # Количество уникальных классов в данных
         self.instances_max = 0        # Максимальное количество экземпляров в каждом классе
         self.ordinate_count = 0       # Количество столбцов в данных за исключением 'RowNum' и target_column
@@ -75,13 +76,16 @@ class DataLoader:
                     self.column_names = [col for col in csv_reader.fieldnames if col not in [self.target_column]]#'RowNum', self.target_column]]
                     self.ordinate_count = len(self.column_names)-1
                     #print(len(self.column_names))
-
+                    
+                row_count = 0
                 for row in csv_reader:
                     class_label = row[self.target_column]
                     if class_label not in class_instances:
                         class_instances[class_label] = 1
                     else:
                         class_instances[class_label] += 1
+                    row_count += 1
+                self.file_row_count[file_name] = row_count  # Сохраняем количество строк в файле
 
         # Расчет общего количества классов и максимального количества экземпляров
         self.classes_count = len(class_instances)

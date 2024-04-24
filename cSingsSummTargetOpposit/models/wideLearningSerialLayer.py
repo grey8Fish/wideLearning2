@@ -551,10 +551,11 @@ time_delta = end_time - start_time
 total_time = str(time_delta) 
 final_output = {
 	"script_name": "wideLearningSerialLayer.py",
-    "file_names": file_names,  
+    "file_names": data_loader.file_row_count,  
 	"start_time": start_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время начала работы программы
     "end_time": end_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время окончания работы программы
 	"total_time_seconds": total_time,
+	"total_neuron_count": neuron_number,
     "neurons": output          # вся информация по нейронам
 	}
 with open(final_output_file_path, 'w') as final_json_file:
