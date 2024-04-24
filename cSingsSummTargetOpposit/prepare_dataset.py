@@ -408,6 +408,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     #Сохранение JSON
     process_info = {
         "ProcessStartTime": datetime.now().strftime("%d.%m.%Y %H:%M"),
+        "ScriptName": "prepare_dataset.py",
         "RunParams": {
             "FileName": file_name,
             "ClassColumn": class_column,
@@ -481,7 +482,6 @@ if __name__ == "__main__":
     # Конец настройки
     # Создание словаря с аргументами для функции и проверками на существование аргумента
     process_args = {
-	    "script_name": "prepare_dataset.py",
         "file_name": file_name,
         "class_column": class_column,
         **({"instance_column": locals().get('instance_column')} if 'instance_column' in locals() else {}),  # Условное добавление instance_column с проверкой на существование
