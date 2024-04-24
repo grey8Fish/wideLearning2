@@ -389,7 +389,8 @@ class wideLearningSerialLayer:
 
 start_time = datetime.now()
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-file_names = ['Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_A_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_B_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_C_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_D_edu_20240424201826.csv']
+file_names = ['output\\dataset_Customer_20240425025244\\Customer_class_A_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_B_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_C_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_D_edu_20240425025244.csv']
+#file_names = ['Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_A_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_B_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_C_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_D_edu_20240424201826.csv']
 #file_names = ['outputApple400\\apple_quality_class_0_edu_20240418154718.csv','outputApple400\\apple_quality_class_1_edu_20240418154718.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
 #file_names = ['milknew_0_part0_20240320122332.csv','milknew_1_part0_20240320122332.csv','milknew_2_part0_20240320122332.csv']

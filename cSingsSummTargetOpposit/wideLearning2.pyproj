@@ -45,13 +45,19 @@
     <Folder Include="sources\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Sources\Alco_Maths.csv" />
+    <Content Include="Sources\Alco_Portuguese.csv" />
     <Content Include="Sources\apple_quality.csv" />
+    <Content Include="Sources\Banking.csv" />
     <Content Include="Sources\bodyPerformance.csv" />
     <Content Include="Sources\cancer_prediction_dataset.csv" />
     <Content Include="Sources\Churn_Modelling.csv" />
     <Content Include="sources\cirrhosis.csv" />
+    <Content Include="Sources\Customer.csv" />
     <Content Include="Sources\ecoli_test.csv" />
     <Content Include="Sources\ecoli_train.csv" />
+    <Content Include="Sources\Employee.csv" />
+    <Content Include="Sources\fitness_class_2212.csv" />
     <Content Include="Sources\FOREST_test.csv" />
     <Content Include="Sources\FOREST_train.csv" />
     <Content Include="Sources\gender_class_v7.csv" />
@@ -61,16 +67,22 @@
     <Content Include="Sources\HotelReservations.csv" />
     <Content Include="Sources\ionosphere3.csv" />
     <Content Include="Sources\ionosphere4.csv" />
+    <Content Include="Sources\Job_Placement_Data.csv" />
     <Content Include="Sources\kahraman.csv" />
     <Content Include="Sources\KAHRAMAN_test.csv" />
     <Content Include="Sources\KAHRAMAN_train.csv" />
     <Content Include="Sources\loan_sanction_test.csv" />
+    <Content Include="Sources\machine_failure_cleaned.csv" />
     <Content Include="Sources\milknew.csv" />
+    <Content Include="Sources\mobile_price.csv" />
+    <Content Include="Sources\phishing.csv" />
+    <Content Include="Sources\placement.csv" />
     <Content Include="sources\seeds_dataset.txt" />
     <Content Include="sources\Seed_Data.csv" />
     <Content Include="Sources\SEED_test.csv" />
     <Content Include="Sources\SEED_train.csv" />
     <Content Include="Sources\SEED_train_135.csv" />
+    <Content Include="Sources\startup_data.csv" />
     <Content Include="Sources\WineQT.csv" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
