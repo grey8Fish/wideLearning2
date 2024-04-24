@@ -34,15 +34,14 @@ class wideLearningSerialLayer:
 
 	#Обнуление массива лучших весов
 	def zeroingBestWeights(self):
-		
-		#сохранение перед обнулением
+		#сохранение перед обнулением, если не нужно - комментируем блок
+		weights_as_lines = [" , ".join(map(str, line)) for line in self.bestWeights]# Сериализация весов в одну строку
 		output_data = {
             "timestamp": datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
             "neuron_number": len(self.best_weights_data),  
-            "bestWeights": self.bestWeights.tolist()  
+            "bestWeights": weights_as_lines
         }
 		self.best_weights_data.append(output_data)
-		
 		with open(self.json_best_weights_path, 'w') as f:
 			json.dump(self.best_weights_data, f, indent=4)
 		
@@ -435,7 +434,7 @@ while nn >= 2:
 	seconds = datetime.now().timestamp()
 	local_time = datetime.fromtimestamp(seconds).strftime('%a %b %d %H:%M:%S %Y')
 	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-	print("[", neuron_number, "] Местное время:", formatted_time)
+	print("[", neuron_number, "]", formatted_time) #Время
 	neuron_start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
@@ -479,6 +478,9 @@ while nn >= 2:
 			#print(ww)
 			ww += 1
 		qq += 1
+		
+	neuron_end_time = time.time()  # Конец отсчета времени
+	time_elapsed = round(neuron_end_time - neuron_start_time, 3)  # Вычисление времени выполнения
 	
 	qq = 1										#Сумма отсеченных	-1 Всего справа -2
 	ww = 0										#Отсеченных справа	-3
@@ -492,9 +494,7 @@ while nn >= 2:
 	print(wlsl.classesName[wlsl.bestWeights[ww][-9]], wlsl.classesName[wlsl.bestWeights[ww][-5]], sep=', ')
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
 	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],'|',wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
-
-	neuron_end_time = time.time()  # Конец отсчета времени
-	time_elapsed = round(neuron_end_time - neuron_start_time, 3)  # Вычисление времени выполнения
+	print(f"{int(time_elapsed // 3600):02}:{int((time_elapsed % 3600) // 60):02}:{float(time_elapsed % 60):02}")
 
 	weights = wlsl.bestWeights[ww][:wlsl.sizeVector]
 	weights_str = ", ".join(map(str, weights))
