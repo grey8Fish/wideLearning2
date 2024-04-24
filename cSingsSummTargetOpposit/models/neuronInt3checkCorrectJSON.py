@@ -39,7 +39,7 @@ class NeuronInt3CheckCorrectionJSON:
 
 # Загрузка данных из JSON файла
 paths = []    
-with open("output\\dataset_placement_20240425023957\\weights_placement_20240425024106.json", "r") as file:
+with open("output\\dataset_Customer_20240425025744\\weights_Customer_20240425025847.json", "r") as file:
     data = json.load(file)
     paths = data['file_names']
 # Замена '_edu_' на '_test_' в путях файлов

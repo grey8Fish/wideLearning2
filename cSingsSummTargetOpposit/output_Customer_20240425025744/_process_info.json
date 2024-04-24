@@ -1,0 +1,153 @@
+{
+    "ProcessStartTime": "25.04.2024 02:57",
+    "ScriptName": "prepare_dataset.py",
+    "RunParams": {
+        "FileName": "Customer.csv",
+        "ClassColumn": "Segmentation",
+        "InstanceColumn": "ID",
+        "ExcludedColumns": [],
+        "IgnoredColumns": [],
+        "SignificantDigits": null,
+        "MaxRowsPerClass": 200,
+        "TrainingSetPercentage": "90.00%",
+        "TestingSetPercentage": "10.00%",
+        "ValidationSetPercentage": "0.00%"
+    },
+    "InitialStatistics": {
+        "RowCount": 8068,
+        "DuplicateInfo": {
+            "InitialDuplicatesCount": 734,
+            "InitialDuplicatesPercentage": "9.10%",
+            "PostProcessingDuplicatesCount": 0,
+            "PostProcessingDuplicatesPercentage": "0.00%"
+        }
+    },
+    "FinalStatistics": {
+        "RowCount": 5969
+    },
+    "FilePaths": {
+        "SourceFolder": "sources",
+        "OutputFolder": "output//dataset_Customer_20240425025744"
+    },
+    "FileGroups": {
+        "TrainingFiles": [
+            {
+                "file_name": "Customer_class_A_edu_20240425025744.csv",
+                "num_instances": 180
+            },
+            {
+                "file_name": "Customer_class_B_edu_20240425025744.csv",
+                "num_instances": 180
+            },
+            {
+                "file_name": "Customer_class_C_edu_20240425025744.csv",
+                "num_instances": 180
+            },
+            {
+                "file_name": "Customer_class_D_edu_20240425025744.csv",
+                "num_instances": 180
+            }
+        ],
+        "TestingFiles": [
+            {
+                "file_name": "Customer_class_A_test_20240425025744.csv",
+                "num_instances": 20
+            },
+            {
+                "file_name": "Customer_class_B_test_20240425025744.csv",
+                "num_instances": 20
+            },
+            {
+                "file_name": "Customer_class_C_test_20240425025744.csv",
+                "num_instances": 20
+            },
+            {
+                "file_name": "Customer_class_D_test_20240425025744.csv",
+                "num_instances": 20
+            }
+        ],
+        "ValidationFiles": [
+            {
+                "file_name": "Customer_class_A_cor_20240425025744.csv",
+                "num_instances": 0
+            },
+            {
+                "file_name": "Customer_class_B_cor_20240425025744.csv",
+                "num_instances": 0
+            },
+            {
+                "file_name": "Customer_class_C_cor_20240425025744.csv",
+                "num_instances": 0
+            },
+            {
+                "file_name": "Customer_class_D_cor_20240425025744.csv",
+                "num_instances": 0
+            }
+        ]
+    },
+    "ColumnsData": [
+        {
+            "Column Name": "Gender",
+            "ScaleFactor": 140.0,
+            "UniqueCount": 2,
+            "Min": -70,
+            "Max": 70
+        },
+        {
+            "Column Name": "Ever_Married",
+            "ScaleFactor": 140.0,
+            "UniqueCount": 2,
+            "Min": -70,
+            "Max": 70
+        },
+        {
+            "Column Name": "Age",
+            "ScaleFactor": 1.971830985915493,
+            "UniqueCount": 67,
+            "Min": -70,
+            "Max": 70
+        },
+        {
+            "Column Name": "Graduated",
+            "ScaleFactor": 140.0,
+            "UniqueCount": 2,
+            "Min": -70,
+            "Max": 70
+        },
+        {
+            "Column Name": "Profession",
+            "ScaleFactor": 17.5,
+            "UniqueCount": 9,
+            "Min": -70,
+            "Max": 70
+        },
+        {
+            "Column Name": "Work_Experience",
+            "ScaleFactor": 1.0,
+            "UniqueCount": 15,
+            "Min": -70,
+            "Max": 70
+        },
+        {
+            "Column Name": "Spending_Score",
+            "ScaleFactor": 70.0,
+            "UniqueCount": 3,
+            "Min": -70,
+            "Max": 70
+        },
+        {
+            "Column Name": "Family_Size",
+            "ScaleFactor": 1.75,
+            "UniqueCount": 9,
+            "Min": -70,
+            "Max": 70
+        },
+        {
+            "Column Name": "Var_1",
+            "ScaleFactor": 23.333333333333332,
+            "UniqueCount": 7,
+            "Min": -70,
+            "Max": 70
+        }
+    ]
+}

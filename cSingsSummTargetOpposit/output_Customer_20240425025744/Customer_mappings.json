@@ -1,0 +1,39 @@
+{
+    "Gender": {
+        "Male": 0,
+        "Female": 1
+    },
+    "Ever_Married": {
+        "No": 0,
+        "Yes": 1
+    },
+    "Graduated": {
+        "No": 0,
+        "Yes": 1
+    },
+    "Profession": {
+        "Artist": 0,
+        "Executive": 1,
+        "Doctor": 2,
+        "Entertainment": 3,
+        "Marketing": 4,
+        "Engineer": 5,
+        "Lawyer": 6,
+        "Homemaker": 7,
+        "Healthcare": 8
+    },
+    "Spending_Score": {
+        "Low": 0,
+        "Average": 1,
+        "High": 2
+    },
+    "Var_1": {
+        "Cat_3": 0,
+        "Cat_2": 1,
+        "Cat_5": 2,
+        "Cat_7": 3,
+        "Cat_1": 4,
+        "Cat_6": 5,
+        "Cat_4": 6
+    }
+}
