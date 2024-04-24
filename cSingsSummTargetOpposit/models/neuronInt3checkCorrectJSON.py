@@ -38,14 +38,14 @@ class NeuronInt3CheckCorrectionJSON:
         return weights_array
 
 # Загрузка данных из JSON файла
-with open("output\\weights_apple_quality_20240424135749.json", "r") as file:
+with open("output\\dataset_bodyPerformance_20240424201824\\weights_bodyPerformance_20240424202137.json", "r") as file:
     data = json.load(file)
     
 # Сбор массива весов
 weights_array = NeuronInt3CheckCorrectionJSON.collect_weights(data)
 
 # Чтение данных из CSV файла
-csv_file = "outputApple400\\apple_quality_class_1_test_20240418154718.csv"
+csv_file = "Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_A_test_20240424201826.csv"
 df = pd.read_csv(csv_file)
 
 
@@ -63,7 +63,8 @@ for index, row in df.iterrows():
     # Проход по каждому нейрону в JSON файле
     for neuron_data in data['neurons']:
         checker = NeuronInt3CheckCorrectionJSON(len(neuron_data['previous_weights'].split(', ')))
-        checker.set_categories(int(neuron_data['category_left']), int(neuron_data['category_right']))
+        checker.set_categories(neuron_data['category_left'], neuron_data['category_right'])
+
         checker.set_borders(neuron_data['threshold_left'], neuron_data['threshold_right'])
         checker.set_weights(list(map(int, neuron_data['previous_weights'].split(', '))))
 
