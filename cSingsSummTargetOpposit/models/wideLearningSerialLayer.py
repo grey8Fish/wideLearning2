@@ -10,7 +10,7 @@ import os
 import time
 
 class wideLearningSerialLayer:
-	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
+	def __init__(self, coClasses, maxInst, siVector, nameFile, timestamp):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
 		self.maxInstance = maxInst		#Удвоенное максимальное количество экземпляров выборки
 		self.countClasses = coClasses	#количество классов
 		self.sizeVector = siVector		#длина вектора весов / количество столбцов выборки
@@ -28,8 +28,25 @@ class wideLearningSerialLayer:
 		self.inputsClassTraining = np.zeros((coClasses, maxInst, siVector+2), dtype=int)	#входные экземпляры обучающей выборки
 		self.vectorDeltasCurr = np.zeros(siVector, dtype=int)#вектора поправок весов 
 		self.vectorDeltasPrev = np.zeros(siVector, dtype=int)#в процедурах уточнения
+		self.json_best_weights_path = f'output/weights_best_{timestamp}.json'  
+		self.best_weights_data = []  
+	
+
 	#Обнуление массива лучших весов
 	def zeroingBestWeights(self):
+		
+		#сохранение перед обнулением
+		output_data = {
+            "timestamp": datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
+            "neuron_number": len(self.best_weights_data),  
+            "bestWeights": self.bestWeights.tolist()  
+        }
+		self.best_weights_data.append(output_data)
+		
+		with open(self.json_best_weights_path, 'w') as f:
+			json.dump(self.best_weights_data, f, indent=4)
+		
+		#обнуление
 		self.bestWeights.fill(0)
 		
 	#Вернуть 3-х мерную матрицу экземпляров обучающей выборки
@@ -398,7 +415,8 @@ if not os.path.exists(output_directory):
 
 
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
-wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
+timestamp = data_loader.get_timestamp()	
+wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp', timestamp)
 wlsl.setColumnName(data_loader.get_column_names())
 wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
