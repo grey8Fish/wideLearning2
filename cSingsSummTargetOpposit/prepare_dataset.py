@@ -408,6 +408,7 @@ def process(file_name, class_column, instance_column=None, excluded_columns=None
     #Сохранение JSON
     process_info = {
         "ProcessStartTime": datetime.now().strftime("%d.%m.%Y %H:%M"),
+        "ScriptName": "prepare_dataset.py",
         "RunParams": {
             "FileName": file_name,
             "ClassColumn": class_column,

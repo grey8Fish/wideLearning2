@@ -10,7 +10,7 @@ import os
 import time
 
 class wideLearningSerialLayer:
-	def __init__(self, coClasses, maxInst, siVector, nameFile):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
+	def __init__(self, coClasses, maxInst, siVector, nameFile, timestamp):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
 		self.maxInstance = maxInst		#Удвоенное максимальное количество экземпляров выборки
 		self.countClasses = coClasses	#количество классов
 		self.sizeVector = siVector		#длина вектора весов / количество столбцов выборки
@@ -28,8 +28,24 @@ class wideLearningSerialLayer:
 		self.inputsClassTraining = np.zeros((coClasses, maxInst, siVector+2), dtype=int)	#входные экземпляры обучающей выборки
 		self.vectorDeltasCurr = np.zeros(siVector, dtype=int)#вектора поправок весов 
 		self.vectorDeltasPrev = np.zeros(siVector, dtype=int)#в процедурах уточнения
+		self.json_best_weights_path = f'output/weights_best_{timestamp}.json'  
+		self.best_weights_data = []  
+	
+
 	#Обнуление массива лучших весов
 	def zeroingBestWeights(self):
+		#сохранение перед обнулением, если не нужно - комментируем блок
+		weights_as_lines = [" , ".join(map(str, line)) for line in self.bestWeights]# Сериализация весов в одну строку
+		output_data = {
+            "timestamp": datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
+            "neuron_number": len(self.best_weights_data),  
+            "bestWeights": weights_as_lines
+        }
+		self.best_weights_data.append(output_data)
+		with open(self.json_best_weights_path, 'w') as f:
+			json.dump(self.best_weights_data, f, indent=4)
+		
+		#обнуление
 		self.bestWeights.fill(0)
 		
 	#Вернуть 3-х мерную матрицу экземпляров обучающей выборки
@@ -398,7 +414,8 @@ if not os.path.exists(output_directory):
 
 
 #wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
-wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp')
+timestamp = data_loader.get_timestamp()	
+wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp', timestamp)
 wlsl.setColumnName(data_loader.get_column_names())
 wlsl.setClassesName(data_loader.get_class_names())
 wlsl.inputsClassTraining = data_loader.get_data().copy()
@@ -417,7 +434,7 @@ while nn >= 2:
 	seconds = datetime.now().timestamp()
 	local_time = datetime.fromtimestamp(seconds).strftime('%a %b %d %H:%M:%S %Y')
 	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-	print("[", neuron_number, "] Местное время:", formatted_time)
+	print("[", neuron_number, "]", formatted_time) #Время
 	neuron_start_time = time.time()  # Начало отсчета времени для нейрона
 	countCutOffPrev = 0
 	qq = 0
@@ -461,6 +478,9 @@ while nn >= 2:
 			#print(ww)
 			ww += 1
 		qq += 1
+		
+	neuron_end_time = time.time()  # Конец отсчета времени
+	time_elapsed = round(neuron_end_time - neuron_start_time, 3)  # Вычисление времени выполнения
 	
 	qq = 1										#Сумма отсеченных	-1 Всего справа -2
 	ww = 0										#Отсеченных справа	-3
@@ -474,9 +494,7 @@ while nn >= 2:
 	print(wlsl.classesName[wlsl.bestWeights[ww][-9]], wlsl.classesName[wlsl.bestWeights[ww][-5]], sep=', ')
 	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
 	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],'|',wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
-
-	neuron_end_time = time.time()  # Конец отсчета времени
-	time_elapsed = round(neuron_end_time - neuron_start_time, 3)  # Вычисление времени выполнения
+	print(f"{int(time_elapsed // 3600):02}:{int((time_elapsed % 3600) // 60):02}:{float(time_elapsed % 60):02}")
 
 	weights = wlsl.bestWeights[ww][:wlsl.sizeVector]
 	weights_str = ", ".join(map(str, weights))
@@ -551,10 +569,11 @@ time_delta = end_time - start_time
 total_time = str(time_delta) 
 final_output = {
 	"script_name": "wideLearningSerialLayer.py",
-    "file_names": file_names,  
+    "file_names": data_loader.file_row_count,  
 	"start_time": start_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время начала работы программы
     "end_time": end_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время окончания работы программы
 	"total_time_seconds": total_time,
+	"total_neuron_count": neuron_number,
     "neurons": output          # вся информация по нейронам
 	}
 with open(final_output_file_path, 'w') as final_json_file:
