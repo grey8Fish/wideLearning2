@@ -4,10 +4,61 @@ from xml.etree.ElementTree import tostring
 #import sys
 import numpy as np
 import csv
+from pandas import concat
 from DataLoader import DataLoader
 import json
 import os
 import time
+import cProfile, pstats
+import pandas as pd
+#import openpyxl  
+from pandas import ExcelWriter
+
+
+def convert_prof(profile_path, format='json'):
+    """
+    Конвертирует .prof файл в JSON, CSV или XLSX формат.
+    
+    :param profile_path: Путь к .prof файлу
+    :param format: Формат вывода ('json', 'csv' или 'xlsx')
+    """
+    # Загрузка статистики из файла профилирования
+    stats = pstats.Stats(profile_path)
+    stats.strip_dirs().sort_stats('calls')  # Сортировка по количеству вызовов
+
+    # Подготовка данных для вывода
+    data = []
+    for func, (cc, nc, tt, ct, callers) in stats.stats.items():
+        data.append({
+            'Function': func,
+            'Call Count': cc,
+            'Native Calls': nc,
+            'Total Time': tt,
+            'Cumulative Time': ct,
+            'Callers': {str(k): v for k, v in callers.items()}
+        })
+
+    # Конвертация данных в DataFrame для удобства экспорта
+    df = pd.DataFrame(data)
+
+    # Выбор формата вывода
+    if format == 'json':
+        output_path = profile_path.replace('.prof', '.json')
+        df.to_json(output_path, orient='records', indent=4)
+    elif format == 'csv':
+        output_path = profile_path.replace('.prof', '.csv')
+        df.to_csv(output_path, index=False)
+    elif format == 'xlsx':
+        output_path = profile_path.replace('.prof', '.xlsx')
+        with ExcelWriter(output_path) as writer:
+            df.to_excel(writer, index=False)
+			
+    # Удаление исходного .prof файла
+    os.remove(profile_path)
+	
+    print(f"Файл '{output_path}' успешно сохранён.")
+
+
 
 class wideLearningSerialLayer:
 	def __init__(self, coClasses, maxInst, siVector, nameFile, timestamp, common_path):	#количество классов, максимальное количество экземпляров, количество столбцов=размер вектора весов, имя файла
@@ -239,23 +290,24 @@ class wideLearningSerialLayer:
 		print(a)'''
 		self.inputsClassTraining[curCat] = self.inputsClassTraining[curCat][self.inputsClassTraining[curCat][:,-1].argsort()]
 	#Контрастирование весов. Делит веса на 2 без изменения количества отсеченных.
-	def contrastingWeights(self, oppoCat, targCat, countCutOffOpposit, countCutOffTarget):
-		countCutOffPrev = countCutOffOpposit + countCutOffTarget
-		qq = 0
-		while qq < 1:
-			self.currentWeightsInit //= 2
-			nTargMax = self.calcNoTarMax(targCat)                    #расчет количества отсеченных
-			countCutOffTarg = self.calcCutOffSignTarget(targCat, nTargMax)
-			nOppoMin = self.calcNoOppMin(oppoCat)
-			countCutOffOppo = self.calcCutOffSignOpposit(oppoCat, nOppoMin)
-			countCutOffCurr = countCutOffTarg + countCutOffOppo#расчет количества отсеченных
-			if countCutOffCurr == countCutOffPrev:
-				wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
-			else:
-				wlsl.currentWeightsInit = wlsl.previousWeightsInit.copy()
-				break
-			qq += 1
-		countCutOffPrev = 9
+	#здесь надо избавиться от wlsl в коде
+	#def contrastingWeights(self, oppoCat, targCat, countCutOffOpposit, countCutOffTarget):
+	#	countCutOffPrev = countCutOffOpposit + countCutOffTarget
+	#	qq = 0
+	#	while qq < 1:
+	#		self.currentWeightsInit //= 2
+	#		nTargMax = self.calcNoTarMax(targCat)                    #расчет количества отсеченных
+	#		countCutOffTarg = self.calcCutOffSignTarget(targCat, nTargMax)
+	#		nOppoMin = self.calcNoOppMin(oppoCat)
+	#		countCutOffOppo = self.calcCutOffSignOpposit(oppoCat, nOppoMin)
+	#		countCutOffCurr = countCutOffTarg + countCutOffOppo#расчет количества отсеченных
+	#		if countCutOffCurr == countCutOffPrev:
+	#			wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
+	#		else:
+	#			wlsl.currentWeightsInit = wlsl.previousWeightsInit.copy()
+	#			break
+	#		qq += 1
+	#	countCutOffPrev = 9
 	#Градиентный спуск сканированием, наивный вариант
 	def  gradientDescentScanning(self, oppoCat, noOppoMin, targCat, noTargMax, cutOffOppo, cutOffTarg):
 		oppoMax = self.setColCutOffSignOpposit(oppoCat, noOppoMin)
@@ -385,11 +437,219 @@ class wideLearningSerialLayer:
 		self.bestWeights[ww][-7] = countCufOffOpposit 	#Отсеченных слева -7
 		self.bestWeights[ww][-8] = thresholdOppo	#Левый порог -8
 		self.bestWeights[ww][-9] = oppoCat	#Левый класс -9
+		
+def main(file_names):
+
+	start_time = datetime.now()
+	np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+	data_loader = DataLoader(file_names)
+	data_loader.load_data() 
+
+	#Для JSON
+	output = []
+	timestamp = data_loader.get_timestamp()
+	# Убедимся, что каталог для сохранения файлов существует
+	output_directory = 'output'
+	if not os.path.exists(output_directory):
+		os.makedirs(output_directory)
 
 
-start_time = datetime.now()
-np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-file_names = ['output\\dataset_Customer_20240425025744\\Customer_class_A_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_B_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_C_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_D_edu_20240425025744.csv']
+	#wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
+	timestamp = data_loader.get_timestamp()	
+	common_path = os.path.dirname(file_names[0])
+	wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp', timestamp, common_path)
+	wlsl.setColumnName(data_loader.get_column_names())
+	wlsl.setClassesName(data_loader.get_class_names())
+	wlsl.inputsClassTraining = data_loader.get_data().copy()
+	wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
+	#wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
+	base_name = os.path.basename(file_names[0]).split('_class')[0]
+	# Извлечение имени первого файла без расширения
+	#base_file_name = base_name #os.path.splitext(os.path.basename(file_names[0]))[0]
+	# Путь к файлу JSON
+	temp_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}.temp.json'
+	final_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}.json'
+
+	nn = 2
+	neuron_number = 0
+	while nn >= 2:
+		seconds = datetime.now().timestamp()
+		local_time = datetime.fromtimestamp(seconds).strftime('%a %b %d %H:%M:%S %Y')
+		formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+		print("[", neuron_number, "]", formatted_time) #Время
+		neuron_start_time = time.time()  # Начало отсчета времени для нейрона
+		countCutOffPrev = 0
+		qq = 0
+		while qq < wlsl.countClasses:
+			ww = 0
+			while ww < wlsl.countInstancesEachClassTraining[qq]:
+				ee = 0
+				while ee < wlsl.sizeVector:#первоначальное приближение вектора весов 
+					wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee] // 2
+					#Инициализировать столбец «значение скалярного произведения»
+					wlsl.initColScalarMul(wlsl.currentWeightsInit)
+					#Определить целевую и противоположную категории
+					mm = wlsl.getMinMaxScalarMul()
+					opCat = int(mm[0])
+					taCat = int(mm[1])
+					#Определить максимальное значение скалярного произведения в НЕ целевых категориях
+					noTargMax = wlsl.calcNoTarMax(taCat)
+					#print(noTargMax)
+					#Определить количество отсечённых экземпляров в целевой категории
+					countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
+					#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
+					noOppoMin = wlsl.calcNoOppMin(opCat)
+					#print(noOppoMin)
+					#Определить количество отсечённых экземпляров в противоположной категории
+					countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
+					countCutOffCurrent = countCutOffTarget + countCufOffOpposit
+					if countCutOffPrev < countCutOffCurrent:
+						countCutOffPrev = countCutOffCurrent
+						wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
+						#countCutOffRight = countCutOffTarget
+						#categoryRight = taCat
+						#print(noTargMax)
+						#maxNoRight = noTargMax
+						#countCufOffLeft = countCufOffOpposit
+						#categoryLeft = opCat
+						#minNoLeft = noOppoMin
+						wlsl.gradientDescentScanning(opCat, noOppoMin, taCat, noTargMax, countCufOffOpposit, countCutOffTarget)
+	#					rr += 1
+						#ff += 1
+					ee += 1
+				#print(ww)
+				ww += 1
+			qq += 1
+		
+		neuron_end_time = time.time()  # Конец отсчета времени
+		time_elapsed = round(neuron_end_time - neuron_start_time, 3)  # Вычисление времени выполнения
+	
+		qq = 1										#Сумма отсеченных	-1 Всего справа -2
+		ww = 0										#Отсеченных справа	-3
+		maxEE = wlsl.bestWeights[ww][-1]			#Правый порог		-4
+		while qq < wlsl.numberBest:					#Правый класс		-5
+			if maxEE < wlsl.bestWeights[qq][-1]:	#Всего слева		-6
+				maxEE = wlsl.bestWeights[qq][-1]	#Отсеченных слева	-7
+				ww = qq								#Левый порог		-8
+			qq += 1									#Левый класс		-9
+		print(wlsl.bestWeights[ww][-8], wlsl.bestWeights[ww][-4],sep=', ')
+		print(wlsl.classesName[wlsl.bestWeights[ww][-9]], wlsl.classesName[wlsl.bestWeights[ww][-5]], sep=', ')
+		print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
+		print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],'|',wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
+		print(f"{int(time_elapsed // 3600):02}:{int((time_elapsed % 3600) // 60):02}:{float(time_elapsed % 60):02}")
+
+		weights = wlsl.bestWeights[ww][:wlsl.sizeVector]
+		weights_str = ", ".join(map(str, weights))
+
+		#Блок сохранения JSON
+		output_data = {
+		"neuron_number": neuron_number,
+		"time_elapsed_seconds": time_elapsed,
+		"timestamp": formatted_time,
+		"threshold_left": wlsl.bestWeights[ww][-8],
+		"threshold_right": wlsl.bestWeights[ww][-4],
+		"category_left": wlsl.classesName[wlsl.bestWeights[ww][-9]],
+		"category_right": wlsl.classesName[wlsl.bestWeights[ww][-5]],
+		"previous_weights": weights_str, #wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
+		"cut_off_left": wlsl.bestWeights[ww][-7],
+		"instances_left": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],
+		"cut_off_right": wlsl.bestWeights[ww][-3],
+		"instances_right": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]]
+		}
+		#print(f"Cut off left: {output_data['cut_off_left']} out of {output_data['instances_left']}")
+		#print(f"Cut off right: {output_data['cut_off_right']} out of {output_data['instances_right']}\n")
+		output.append(output_data)
+	
+		# Запись данных во временный JSON файл на каждом шаге
+		#with open(temp_output_file_path, 'w') as temp_json_file:
+		#	json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
+		temp_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}_{neuron_number}.temp.json' # Изменено для сохранения всех временных файлов
+		with open(temp_output_file_path, 'w') as temp_json_file:
+			json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
+
+		# Копирование данных из временного файла в постоянный в конце каждой итерации, закомментировать если нужно сохранять все нейроны 
+		os.replace(temp_output_file_path, final_output_file_path)
+
+		#Инициализировать столбец «значение скалярного произведения»
+		wlsl.initColScalarMul(wlsl.bestWeights[ww][:wlsl.sizeVector])
+
+		#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
+		noOppoMin = wlsl.calcNoOppMin(wlsl.bestWeights[ww][-9])
+		#Установить в 2 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
+		wlsl.setColCutOffSignOpposit(wlsl.bestWeights[ww][-9], noOppoMin)
+		#Сортировать указанную категорию по возрастанию «признака отсечённости»
+		wlsl.sortCategoryCutOff(wlsl.bestWeights[ww][-9])
+		#Усечение указанных классов
+		wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]] -= wlsl.bestWeights[ww][-7]
+
+		#Определить максимальное значение скалярного произведения в НЕ целевых категориях
+		noTargMax = wlsl.calcNoTarMax(wlsl.bestWeights[ww][-5])
+		#Установить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
+		wlsl.setColCutOffSignTarget(wlsl.bestWeights[ww][-5], noTargMax)
+		#Сортировать указанную категорию по возрастанию «признака отсечённости»
+		wlsl.sortCategoryCutOff(wlsl.bestWeights[ww][-5])
+		#Усечение указанных классов
+		wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]] -= wlsl.bestWeights[ww][-3]
+
+		#Обнуление массива лучших весов
+		wlsl.zeroingBestWeights()
+
+		nn = 0
+		rr = 0
+		while rr < wlsl.countClasses:
+			if wlsl.countInstancesEachClassTraining[rr] > 0:
+				nn += 1
+			rr += 1
+		neuron_number += 1
+		print()
+
+	qq = 9.5
+
+
+	end_time = datetime.now()
+	time_delta = end_time - start_time
+	total_time = str(time_delta) 
+	final_output = {
+		"script_name": "wideLearningSerialLayer.py",
+		"file_names": file_names,  
+		"start_time": start_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время начала работы программы
+		"end_time": end_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время окончания работы программы
+		"total_time_seconds": total_time,
+		"total_neuron_count": neuron_number,
+		"neurons": output          # вся информация по нейронам
+		}
+	with open(final_output_file_path, 'w') as final_json_file:
+		json.dump(final_output, final_json_file, indent=4, default=lambda x: x.tolist())
+	
+	#Вывод итогов выполнения
+	print(f"Файл сохранён: {final_output_file_path}")
+	print("Время выполнения:", total_time)
+	qq = 9
+
+if __name__ == "__main__":
+	file_names = [
+        'outputApple400\\apple_quality_class_0_edu_20240418154718.csv',
+        'outputApple400\\apple_quality_class_1_edu_20240418154718.csv'
+    ]
+	
+	profiler = cProfile.Profile()
+	profiler.enable()  # Начинаем профилирование
+	main(file_names)  # Запуск основной функции с передачей имён файлов
+	profiler.disable()  # Завершаем профилирование
+
+	# Сохраняем результаты профилирования
+	common_path = os.path.dirname(file_names[0])
+	timestamp = datetime.now().strftime("%Y%m%d%H%M%S")  # Сохраняем текущую метку времени
+	profile_output_file_path = os.path.join(common_path, f'profiling_wlsl_{timestamp}.prof')
+	profiler.dump_stats(profile_output_file_path)
+	convert_prof(profile_output_file_path, format='xlsx')
+
+	stats = pstats.Stats(profiler)
+	#stats.print_stats()
+	stats.sort_stats('time').print_stats(20)
+	
+#file_names = ['output\\dataset_Customer_20240425025244\\Customer_class_A_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_B_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_C_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_D_edu_20240425025244.csv']
+#file_names = ['output\\dataset_Customer_20240425025744\\Customer_class_A_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_B_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_C_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_D_edu_20240425025744.csv']
 #file_names = ['Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_A_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_B_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_C_edu_20240424201826.csv','Output\\dataset_bodyPerformance_20240424201824\\bodyPerformance_class_D_edu_20240424201826.csv']
 #file_names = ['outputApple400\\apple_quality_class_0_edu_20240418154718.csv','outputApple400\\apple_quality_class_1_edu_20240418154718.csv']
 #file_names = ['cirrhosis_1.0_part2_20240301192500.csv','cirrhosis_2.0_part2_20240301192500.csv','cirrhosis_3.0_part2_20240301192500.csv','cirrhosis_4.0_part2_20240301192500.csv']
@@ -403,186 +663,4 @@ file_names = ['output\\dataset_Customer_20240425025744\\Customer_class_A_edu_202
 #file_names = ['outputIonosphere4\\ionosphere3_class_0_edu_20240406105133.csv','outputIonosphere4\\ionosphere3_class_1_edu_20240406105133.csv']
 #file_names = ['outputApple4\\apple_quality_class_0_edu_20240406125611.csv','outputApple4\\apple_quality_class_1_edu_20240406125611.csv']
 #file_names = ['outputGenderV9\\gender_class_v7_class_0_edu_20240408170208.csv','outputGenderV9\\gender_class_v7_class_1_edu_20240408170208.csv']
-data_loader = DataLoader(file_names)
-data_loader.load_data() 
-
-#Для JSON
-output = []
-timestamp = data_loader.get_timestamp()
-# Убедимся, что каталог для сохранения файлов существует
-output_directory = 'output'
-if not os.path.exists(output_directory):
-    os.makedirs(output_directory)
-
-
-#wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count-1, 'fileNameTmp')
-timestamp = data_loader.get_timestamp()	
-common_path = os.path.dirname(file_names[0])
-wlsl = wideLearningSerialLayer(data_loader.classes_count, data_loader.instances_max, data_loader.ordinate_count, 'fileNameTmp', timestamp, common_path)
-wlsl.setColumnName(data_loader.get_column_names())
-wlsl.setClassesName(data_loader.get_class_names())
-wlsl.inputsClassTraining = data_loader.get_data().copy()
-wlsl.countInstancesEachClassTraining = data_loader.get_max_instances_nparray().copy()
-#wlsl.countInstancesEachClassCorrection = data_loader.get_max_instances_nparray().copy()
-base_name = os.path.basename(file_names[0]).split('_class')[0]
-# Извлечение имени первого файла без расширения
-#base_file_name = base_name #os.path.splitext(os.path.basename(file_names[0]))[0]
-# Путь к файлу JSON
-temp_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}.temp.json'
-final_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}.json'
-
-nn = 2
-neuron_number = 0
-while nn >= 2:
-	seconds = datetime.now().timestamp()
-	local_time = datetime.fromtimestamp(seconds).strftime('%a %b %d %H:%M:%S %Y')
-	formatted_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-	print("[", neuron_number, "]", formatted_time) #Время
-	neuron_start_time = time.time()  # Начало отсчета времени для нейрона
-	countCutOffPrev = 0
-	qq = 0
-	while qq < wlsl.countClasses:
-		ww = 0
-		while ww < wlsl.countInstancesEachClassTraining[qq]:
-			ee = 0
-			while ee < wlsl.sizeVector:#первоначальное приближение вектора весов 
-				wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee] // 2
-				#Инициализировать столбец «значение скалярного произведения»
-				wlsl.initColScalarMul(wlsl.currentWeightsInit)
-				#Определить целевую и противоположную категории
-				mm = wlsl.getMinMaxScalarMul()
-				opCat = int(mm[0])
-				taCat = int(mm[1])
-				#Определить максимальное значение скалярного произведения в НЕ целевых категориях
-				noTargMax = wlsl.calcNoTarMax(taCat)
-				#print(noTargMax)
-				#Определить количество отсечённых экземпляров в целевой категории
-				countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
-				#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
-				noOppoMin = wlsl.calcNoOppMin(opCat)
-				#print(noOppoMin)
-				#Определить количество отсечённых экземпляров в противоположной категории
-				countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
-				countCutOffCurrent = countCutOffTarget + countCufOffOpposit
-				if countCutOffPrev < countCutOffCurrent:
-					countCutOffPrev = countCutOffCurrent
-					wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
-					#countCutOffRight = countCutOffTarget
-					#categoryRight = taCat
-					#print(noTargMax)
-					#maxNoRight = noTargMax
-					#countCufOffLeft = countCufOffOpposit
-					#categoryLeft = opCat
-					#minNoLeft = noOppoMin
-					wlsl.gradientDescentScanning(opCat, noOppoMin, taCat, noTargMax, countCufOffOpposit, countCutOffTarget)
-#					rr += 1
-					#ff += 1
-				ee += 1
-			#print(ww)
-			ww += 1
-		qq += 1
-		
-	neuron_end_time = time.time()  # Конец отсчета времени
-	time_elapsed = round(neuron_end_time - neuron_start_time, 3)  # Вычисление времени выполнения
 	
-	qq = 1										#Сумма отсеченных	-1 Всего справа -2
-	ww = 0										#Отсеченных справа	-3
-	maxEE = wlsl.bestWeights[ww][-1]			#Правый порог		-4
-	while qq < wlsl.numberBest:					#Правый класс		-5
-		if maxEE < wlsl.bestWeights[qq][-1]:	#Всего слева		-6
-			maxEE = wlsl.bestWeights[qq][-1]	#Отсеченных слева	-7
-			ww = qq								#Левый порог		-8
-		qq += 1									#Левый класс		-9
-	print(wlsl.bestWeights[ww][-8], wlsl.bestWeights[ww][-4],sep=', ')
-	print(wlsl.classesName[wlsl.bestWeights[ww][-9]], wlsl.classesName[wlsl.bestWeights[ww][-5]], sep=', ')
-	print(wlsl.bestWeights[ww][:wlsl.sizeVector], sep=', ')
-	print(wlsl.bestWeights[ww][-7],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],'|',wlsl.bestWeights[ww][-3],' out of ',wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]])
-	print(f"{int(time_elapsed // 3600):02}:{int((time_elapsed % 3600) // 60):02}:{float(time_elapsed % 60):02}")
-
-	weights = wlsl.bestWeights[ww][:wlsl.sizeVector]
-	weights_str = ", ".join(map(str, weights))
-
-	#Блок сохранения JSON
-	output_data = {
-	"neuron_number": neuron_number,
-	"time_elapsed_seconds": time_elapsed,
-    "timestamp": formatted_time,
-    "threshold_left": wlsl.bestWeights[ww][-8],
-    "threshold_right": wlsl.bestWeights[ww][-4],
-    "category_left": wlsl.classesName[wlsl.bestWeights[ww][-9]],
-    "category_right": wlsl.classesName[wlsl.bestWeights[ww][-5]],
-    "previous_weights": weights_str, #wlsl.bestWeights[ww][:wlsl.sizeVector].tolist(), # Здесь указывать размер вектора
-    "cut_off_left": wlsl.bestWeights[ww][-7],
-    "instances_left": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]],
-    "cut_off_right": wlsl.bestWeights[ww][-3],
-    "instances_right": wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]]
-	}
-	#print(f"Cut off left: {output_data['cut_off_left']} out of {output_data['instances_left']}")
-	#print(f"Cut off right: {output_data['cut_off_right']} out of {output_data['instances_right']}\n")
-	output.append(output_data)
-	
-	# Запись данных во временный JSON файл на каждом шаге
-	#with open(temp_output_file_path, 'w') as temp_json_file:
-	#	json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
-	temp_output_file_path = f'{common_path}/weights_{base_name}_{timestamp}_{neuron_number}.temp.json' # Изменено для сохранения всех временных файлов
-	with open(temp_output_file_path, 'w') as temp_json_file:
-		json.dump(output, temp_json_file, indent=4, default=lambda x: x.tolist())
-
-	# Копирование данных из временного файла в постоянный в конце каждой итерации, закомментировать если нужно сохранять все нейроны 
-	os.replace(temp_output_file_path, final_output_file_path)
-
-	#Инициализировать столбец «значение скалярного произведения»
-	wlsl.initColScalarMul(wlsl.bestWeights[ww][:wlsl.sizeVector])
-
-	#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
-	noOppoMin = wlsl.calcNoOppMin(wlsl.bestWeights[ww][-9])
-	#Установить в 2 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
-	wlsl.setColCutOffSignOpposit(wlsl.bestWeights[ww][-9], noOppoMin)
-	#Сортировать указанную категорию по возрастанию «признака отсечённости»
-	wlsl.sortCategoryCutOff(wlsl.bestWeights[ww][-9])
-	#Усечение указанных классов
-	wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-9]] -= wlsl.bestWeights[ww][-7]
-
-	#Определить максимальное значение скалярного произведения в НЕ целевых категориях
-	noTargMax = wlsl.calcNoTarMax(wlsl.bestWeights[ww][-5])
-	#Установить в 1 столбец «признак отсеченности» в целевой категории и вернуть значение порога справа.
-	wlsl.setColCutOffSignTarget(wlsl.bestWeights[ww][-5], noTargMax)
-	#Сортировать указанную категорию по возрастанию «признака отсечённости»
-	wlsl.sortCategoryCutOff(wlsl.bestWeights[ww][-5])
-	#Усечение указанных классов
-	wlsl.countInstancesEachClassTraining[wlsl.bestWeights[ww][-5]] -= wlsl.bestWeights[ww][-3]
-
-	#Обнуление массива лучших весов
-	wlsl.zeroingBestWeights()
-
-	nn = 0
-	rr = 0
-	while rr < wlsl.countClasses:
-		if wlsl.countInstancesEachClassTraining[rr] > 0:
-			nn += 1
-		rr += 1
-	neuron_number += 1
-	print()
-
-qq = 9.5
-
-
-end_time = datetime.now()
-time_delta = end_time - start_time
-total_time = str(time_delta) 
-final_output = {
-	"script_name": "wideLearningSerialLayer.py",
-    "file_names": file_names,  
-	"start_time": start_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время начала работы программы
-    "end_time": end_time.strftime("%d.%m.%Y %H:%M:%S"),  # Время окончания работы программы
-	"total_time_seconds": total_time,
-	"total_neuron_count": neuron_number,
-    "neurons": output          # вся информация по нейронам
-	}
-with open(final_output_file_path, 'w') as final_json_file:
-    json.dump(final_output, final_json_file, indent=4, default=lambda x: x.tolist())
-	
-#Вывод итогов выполнения
-print(f"Файл сохранён: {final_output_file_path}")
-print("Время выполнения:", total_time)
-qq = 9
