@@ -1,6 +1,7 @@
 import numpy as np
 import json
 import pandas as pd
+import cProfile, pstats
 
 class NeuronInt3CheckCorrectionJSON:
     def __init__(self, vector_size):
@@ -109,5 +110,13 @@ def main():
     print(f"Средняя точность: {average_correct_percentage:.2f}%")
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__":	
+	profiler = cProfile.Profile()
+	profiler.enable()  # Начинаем профилирование
+	main()  # Запуск основной функции с передачей имён файлов
+	profiler.disable()  # Завершаем профилирование
+
+	print()
+	print()
+	stats = pstats.Stats(profiler)
+	stats.sort_stats('time').print_stats(10)

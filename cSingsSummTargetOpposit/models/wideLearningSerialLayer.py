@@ -11,35 +11,36 @@ import os
 import time
 import cProfile, pstats
 import pandas as pd
-#import openpyxl  
+import openpyxl  
 from pandas import ExcelWriter
 
 
-def convert_prof(profile_path, format='json'):
+def convert_prof(profile_path, format='xlsx'):
     """
-    Конвертирует .prof файл в JSON, CSV или XLSX формат.
-    
+    Конвертирует .prof файл в формат JSON, CSV или XLSX.
+
     :param profile_path: Путь к .prof файлу
-    :param format: Формат вывода ('json', 'csv' или 'xlsx')
+    :param format: Формат вывода ('json', 'csv', 'xlsx')
     """
     # Загрузка статистики из файла профилирования
     stats = pstats.Stats(profile_path)
-    stats.strip_dirs().sort_stats('calls')  # Сортировка по количеству вызовов
+    stats.strip_dirs().sort_stats('tottime')  # Сортировка по убыванию общего времени
 
     # Подготовка данных для вывода
     data = []
     for func, (cc, nc, tt, ct, callers) in stats.stats.items():
         data.append({
-            'Function': func,
             'Call Count': cc,
             'Native Calls': nc,
             'Total Time': tt,
             'Cumulative Time': ct,
+            'Function': func,
             'Callers': {str(k): v for k, v in callers.items()}
         })
 
     # Конвертация данных в DataFrame для удобства экспорта
     df = pd.DataFrame(data)
+    df.sort_values(by='Total Time', ascending=False, inplace=True)  # Сортировка данных
 
     # Выбор формата вывода
     if format == 'json':
@@ -50,14 +51,19 @@ def convert_prof(profile_path, format='json'):
         df.to_csv(output_path, index=False)
     elif format == 'xlsx':
         output_path = profile_path.replace('.prof', '.xlsx')
-        with ExcelWriter(output_path) as writer:
-            df.to_excel(writer, index=False)
-			
-    # Удаление исходного .prof файла
-    os.remove(profile_path)
-	
-    print(f"Файл '{output_path}' успешно сохранён.")
+        with ExcelWriter(output_path, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Sheet1')
+            workbook = writer.book
+            worksheet = writer.sheets['Sheet1']
+            # Настройка ширины столбцов
+            for column in df:
+                column_width = max(df[column].astype(str).map(len).max(), len(column))
+                col_idx = df.columns.get_loc(column)
+                worksheet.set_column(col_idx, col_idx, column_width)
+            # Добавление фильтра
+            worksheet.autofilter(0, 0, 0, len(df.columns) - 1)
 
+    print(f"Файл '{output_path}' успешно сохранён.")
 
 
 class wideLearningSerialLayer:
@@ -628,8 +634,8 @@ def main(file_names):
 
 if __name__ == "__main__":
 	file_names = [
-        'outputApple400\\apple_quality_class_0_edu_20240418154718.csv',
-        'outputApple400\\apple_quality_class_1_edu_20240418154718.csv'
+        'outputApple100\\apple_quality_class_0_edu_20240418154808.csv',
+        'outputApple100\\apple_quality_class_1_edu_20240418154808.csv'
     ]
 	
 	profiler = cProfile.Profile()
@@ -644,9 +650,17 @@ if __name__ == "__main__":
 	profiler.dump_stats(profile_output_file_path)
 	convert_prof(profile_output_file_path, format='xlsx')
 
+
+	print()
+	print()
 	stats = pstats.Stats(profiler)
 	#stats.print_stats()
-	stats.sort_stats('time').print_stats(20)
+	stats.sort_stats('time').print_stats(10)
+"""
+	file_names = [
+        'outputApple400\\apple_quality_class_0_edu_20240418154718.csv',
+        'outputApple400\\apple_quality_class_1_edu_20240418154718.csv'
+    ]
 	
 #file_names = ['output\\dataset_Customer_20240425025244\\Customer_class_A_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_B_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_C_edu_20240425025244.csv','output\\dataset_Customer_20240425025244\\Customer_class_D_edu_20240425025244.csv']
 #file_names = ['output\\dataset_Customer_20240425025744\\Customer_class_A_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_B_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_C_edu_20240425025744.csv','output\\dataset_Customer_20240425025744\\Customer_class_D_edu_20240425025744.csv']
@@ -663,4 +677,6 @@ if __name__ == "__main__":
 #file_names = ['outputIonosphere4\\ionosphere3_class_0_edu_20240406105133.csv','outputIonosphere4\\ionosphere3_class_1_edu_20240406105133.csv']
 #file_names = ['outputApple4\\apple_quality_class_0_edu_20240406125611.csv','outputApple4\\apple_quality_class_1_edu_20240406125611.csv']
 #file_names = ['outputGenderV9\\gender_class_v7_class_0_edu_20240408170208.csv','outputGenderV9\\gender_class_v7_class_1_edu_20240408170208.csv']
+
+"""
 	
