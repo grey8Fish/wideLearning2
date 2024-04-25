@@ -63,7 +63,7 @@ def convert_prof(profile_path, format='xlsx'):
             # Добавление фильтра
             worksheet.autofilter(0, 0, 0, len(df.columns) - 1)
 
-    print(f"Файл '{output_path}' успешно сохранён.")
+    print(f"Профайлинг '{output_path}' успешно сохранён.")
 
 
 class wideLearningSerialLayer:
@@ -651,7 +651,6 @@ if __name__ == "__main__":
 	convert_prof(profile_output_file_path, format='xlsx')
 
 
-	print()
 	print()
 	stats = pstats.Stats(profiler)
 	#stats.print_stats()
