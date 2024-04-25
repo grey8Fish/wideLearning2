@@ -287,6 +287,9 @@ class wideLearningSerialLayer:
 			if noTaMax < self.inputsClassTraining[tCat][uu][self.sizeVector+1]:
 				yy += 1
 			uu += 1
+	    #scalar_products = self.inputsClassTraining[tCat, :self.countInstancesEachClassTraining[tCat],
+        #                  self.sizeVector + 1]
+        #cut_off_count = np.sum(scalar_products > noTaMax)
 		return yy
 	#Установить в 2 столбец «признак отсеченности» в противоположной категории и вернуть значение порога слева.
 	def setColCutOffSignOpposit(self, oCat, noOpMin):
