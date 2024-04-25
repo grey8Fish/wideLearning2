@@ -13,6 +13,7 @@ import cProfile, pstats
 import pandas as pd
 import openpyxl  
 from pandas import ExcelWriter
+import traceback
 
 
 def convert_prof(profile_path, format='xlsx', delete_original=False):
@@ -65,7 +66,7 @@ def convert_prof(profile_path, format='xlsx', delete_original=False):
 			
     if delete_original:
         os.remove(profile_path)
-        print(f"Оригинальный файл профайлинга '{profile_path}' был удалён.")
+        #print(f"Оригинальный файл профайлинга '{profile_path}' был удалён.")
 
     print(f"Профайлинг '{output_path}' успешно сохранён.")
 
@@ -146,32 +147,32 @@ class wideLearningSerialLayer:
 			yy += 1
 			
 	#Определить целевую и противоположную категории
-	def getMinMaxScalarMul(self):
-		min_value = np.inf
-		max_value = -np.inf
-		op_min_class = None
-		ta_max_class = None
-
-		for class_index in range(self.countClasses):
-			class_data = self.inputsClassTraining[class_index, :self.countInstancesEachClassTraining[class_index], self.sizeVector+1]
-			if class_data.size == 0:
-				continue
-
-			local_min = np.min(class_data)
-			local_max = np.max(class_data)
-
-			if local_min < min_value:
-				min_value = local_min
-				op_min_class = class_index
-
-			if local_max > max_value:
-				max_value = local_max
-				ta_max_class = class_index
-
-		return op_min_class, ta_max_class
+	#def getMinMaxScalarMul_numpy(self):
+	#	min_value = np.inf
+	#	max_value = -np.inf
+	#	op_min_class = None
+	#	ta_max_class = None
+	#
+	#	for class_index in range(self.countClasses):
+	#		class_data = self.inputsClassTraining[class_index, :self.countInstancesEachClassTraining[class_index], self.sizeVector+1]
+	#		if class_data.size == 0:
+	#			continue
+	#
+	#		local_min = np.min(class_data)
+	#		local_max = np.max(class_data)
+	#
+	#		if local_min < min_value:
+	#			min_value = local_min
+	#			op_min_class = class_index
+	#
+	#		if local_max > max_value:
+	#			max_value = local_max
+	#			ta_max_class = class_index
+	#
+	#	return op_min_class, ta_max_class
 		
 	#Определить целевую и противоположную категории - старая версия
-	def getMinMaxScalarMul_old(self):
+	def getMinMaxScalarMul(self):
 		yy = 0
 		while yy < self.countClasses:
 			if self.countInstancesEachClassTraining[yy] == 0:
@@ -641,7 +642,11 @@ def main(file_names):
 			print()
 
 		qq = 9.5
-
+		
+	except Exception as e:
+		print("Произошла ошибка:", str(e))
+		traceback.print_exc()
+		
 	finally:
 		end_time = datetime.now()
 		time_delta = end_time - start_time
@@ -674,6 +679,9 @@ if __name__ == "__main__":
 	try:
 		profiler.enable()  # Начинаем профилирование
 		main(file_names)  # Запуск основной функции с передачей имён файлов
+	except Exception as e:
+		print("Произошла ошибка:", str(e))
+		traceback.print_exc()
 	finally:
 		profiler.disable()  # Завершаем профилирование
 
