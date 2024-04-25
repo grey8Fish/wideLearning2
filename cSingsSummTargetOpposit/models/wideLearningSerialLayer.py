@@ -15,7 +15,7 @@ import openpyxl
 from pandas import ExcelWriter
 
 
-def convert_prof(profile_path, format='xlsx'):
+def convert_prof(profile_path, format='xlsx', delete_original=False):
     """
     Конвертирует .prof файл в формат JSON, CSV или XLSX.
 
@@ -62,6 +62,10 @@ def convert_prof(profile_path, format='xlsx'):
                 worksheet.set_column(col_idx, col_idx, column_width)
             # Добавление фильтра
             worksheet.autofilter(0, 0, 0, len(df.columns) - 1)
+			
+    if delete_original:
+        os.remove(profile_path)
+        print(f"Оригинальный файл профайлинга '{profile_path}' был удалён.")
 
     print(f"Профайлинг '{output_path}' успешно сохранён.")
 
@@ -648,7 +652,7 @@ if __name__ == "__main__":
 	timestamp = datetime.now().strftime("%Y%m%d%H%M%S")  # Сохраняем текущую метку времени
 	profile_output_file_path = os.path.join(common_path, f'profiling_wlsl_{timestamp}.prof')
 	profiler.dump_stats(profile_output_file_path)
-	convert_prof(profile_output_file_path, format='xlsx')
+	convert_prof(profile_output_file_path, format='xlsx', delete_original=True)
 
 
 	print()
