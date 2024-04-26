@@ -30,7 +30,8 @@ class NeuronInt3CheckCorrectionJSON:
            ((current_category != self.opposite_category) and (scalar_product < self.left_border)):
             return False
         return True
-    
+
+    @staticmethod
     def collect_weights(data):
         weights_array = []
         for neuron in data['neurons']:
@@ -38,14 +39,12 @@ class NeuronInt3CheckCorrectionJSON:
             weights_array.append(weights)
         return weights_array
 
-
 def main():
     # Загрузка данных из JSON файла
     paths = []    
     with open("outputApple400\\weights_apple_quality_20240426103915.json", "r") as file:
         data = json.load(file)
         paths = data['file_names']
-    # Замена '_edu_' на '_test_' в путях файлов
     paths = [path.replace("_edu_", "_test_") for path in paths]
     
     # Сбор массива весов
@@ -55,17 +54,14 @@ def main():
     dfs = [pd.read_csv(file) for file in paths]
     df = pd.concat(dfs, ignore_index=True)
 
-
     # Инициализация списка для результатов
-    summary_results = []
+    results = []
 
     # Проход по каждой строке в CSV файле
     for index, row in df.iterrows():
         input_vector = row[:-1].to_numpy()
         current_category = row.iloc[-1]
         source_rownum = row.iloc[-2]
-        correct_count = 0
-        total_neurons = len(data['neurons'])
 
         # Проход по каждому нейрону в JSON файле
         for neuron_index, neuron_data in enumerate(data['neurons']):
@@ -76,19 +72,28 @@ def main():
 
             # Проверка входного вектора
             if checker.check_instance(input_vector, current_category):
-                # Возвращаем категорию, номер нейрона и останавливаем цикл
-                print(f"Нейрон: {neuron_index}, Категория: {current_category}")
+                results.append({
+                    "Строка CSV": source_rownum,
+                    "Номер нейрона": neuron_index,
+                    "Категория из файла": current_category,
+                    "Категория по нейрону": checker.target_category if current_category != checker.opposite_category else checker.opposite_category
+                })
                 break
 
+    # Создание DataFrame для результатов
+    results_df = pd.DataFrame(results)
 
+    # Расчёт точности
+    accuracy = np.mean(results_df['Категория из файла'] == results_df['Категория по нейрону']) * 100
 
-if __name__ == "__main__":	
-	profiler = cProfile.Profile()
-	profiler.enable()  # Начинаем профилирование
-	main()  # Запуск основной функции с передачей имён файлов
-	profiler.disable()  # Завершаем профилирование
+    # Вывод результатов
+    print(f"Точность: {accuracy:.2f}%")
+    pd.set_option('display.max_rows', None)  # Вывод всех строк DataFrame
+    print(results_df.to_string())
 
-	print()
-	print()
-	stats = pstats.Stats(profiler)
-	stats.sort_stats('time').print_stats(10)
+    return results_df
+
+if __name__ == "__main__":
+    profiler = cProfile.Profile()
+    profiler.enable()  # Начинаем профилирование
+    result_df = main() 
