@@ -42,7 +42,7 @@ class NeuronInt3CheckCorrectionJSON:
 def main():
     # Загрузка данных из JSON файла
     paths = []    
-    with open("output\\dataset_Customer_20240425025744\\weights_Customer_20240425025847.json", "r") as file:
+    with open("outputApple400\\weights_apple_quality_20240426103915.json", "r") as file:
         data = json.load(file)
         paths = data['file_names']
     # Замена '_edu_' на '_test_' в путях файлов
@@ -68,46 +68,18 @@ def main():
         total_neurons = len(data['neurons'])
 
         # Проход по каждому нейрону в JSON файле
-        for neuron_data in data['neurons']:
+        for neuron_index, neuron_data in enumerate(data['neurons']):
             checker = NeuronInt3CheckCorrectionJSON(len(neuron_data['previous_weights'].split(', ')))
             checker.set_categories(neuron_data['category_left'], neuron_data['category_right'])
-
             checker.set_borders(neuron_data['threshold_left'], neuron_data['threshold_right'])
             checker.set_weights(list(map(int, neuron_data['previous_weights'].split(', '))))
 
             # Проверка входного вектора
             if checker.check_instance(input_vector, current_category):
-                correct_count += 1
+                # Возвращаем категорию, номер нейрона и останавливаем цикл
+                print(f"Нейрон: {neuron_index}, Категория: {current_category}")
+                break
 
-        # Расчёт процента корректных нейронов
-        correct_percentage = (correct_count / total_neurons) * 100
-
-
-        # Добавление результатов в список
-        summary_results.append({
-            #'Row': index, 
-            'RowNumCsv': source_rownum,
-            'CorrectNeurons': correct_count, 
-            'IncorrectNeurons': total_neurons - correct_count, 
-            'Category': current_category, 
-            'CorrectPercentage': f"{correct_percentage:.2f}%"
-        })
-
-    # Создание DataFrame из списка результатов
-    summary_df = pd.DataFrame(summary_results)
-      
-    # Настройки для отображения всех строк и столбцов DataFrame
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', 1000)
-
-    # Вывод таблицы с результатами
-    print(summary_df)
-
-    # Расчет средней точности
-    average_correct_percentage = summary_df['CorrectPercentage'].str.rstrip('%').astype(float).mean()
-    print()
-    print(f"Средняя точность: {average_correct_percentage:.2f}%")
 
 
 if __name__ == "__main__":	
