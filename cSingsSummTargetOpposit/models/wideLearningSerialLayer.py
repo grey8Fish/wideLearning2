@@ -147,32 +147,32 @@ class wideLearningSerialLayer:
 			yy += 1
 			
 	#Определить целевую и противоположную категории
-	#def getMinMaxScalarMul_numpy(self):
-	#	min_value = np.inf
-	#	max_value = -np.inf
-	#	op_min_class = None
-	#	ta_max_class = None
-	#
-	#	for class_index in range(self.countClasses):
-	#		class_data = self.inputsClassTraining[class_index, :self.countInstancesEachClassTraining[class_index], self.sizeVector+1]
-	#		if class_data.size == 0:
-	#			continue
-	#
-	#		local_min = np.min(class_data)
-	#		local_max = np.max(class_data)
-	#
-	#		if local_min < min_value:
-	#			min_value = local_min
-	#			op_min_class = class_index
-	#
-	#		if local_max > max_value:
-	#			max_value = local_max
-	#			ta_max_class = class_index
-	#
-	#	return op_min_class, ta_max_class
+	def getMinMaxScalarMul(self):
+		min_value = np.inf
+		max_value = -np.inf
+		op_min_class = None
+		ta_max_class = None
+	
+		for class_index in range(self.countClasses):
+			class_data = self.inputsClassTraining[class_index, :self.countInstancesEachClassTraining[class_index], self.sizeVector+1]
+			if class_data.size == 0:
+				continue
+	
+			local_min = np.min(class_data)
+			local_max = np.max(class_data)
+	
+			if local_min < min_value:
+				min_value = local_min
+				op_min_class = class_index
+	
+			if local_max > max_value:
+				max_value = local_max
+				ta_max_class = class_index
+	
+		return op_min_class, ta_max_class
 		
 	#Определить целевую и противоположную категории - старая версия
-	def getMinMaxScalarMul(self):
+	def getMinMaxScalarMul_old(self):
 		yy = 0
 		while yy < self.countClasses:
 			if self.countInstancesEachClassTraining[yy] == 0:
@@ -526,7 +526,7 @@ def main(file_names):
 				while ww < wlsl.countInstancesEachClassTraining[qq]:
 					ee = 0
 					while ee < wlsl.sizeVector:#первоначальное приближение вектора весов 
-						wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee] // 2
+						wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee] #// 8
 						#Инициализировать столбец «значение скалярного произведения»
 						wlsl.initColScalarMul(wlsl.currentWeightsInit)
 						#Определить целевую и противоположную категории
@@ -673,8 +673,8 @@ def main(file_names):
 
 if __name__ == "__main__":
 	file_names = [
-        'outputApple400\\apple_quality_class_0_edu_20240418154718.csv',
-        'outputApple400\\apple_quality_class_1_edu_20240418154718.csv'
+        'Output\\dataset_phishing_20240425023346\\phishing_class_1_edu_20240425023347.csv',
+        'Output\\dataset_phishing_20240425023346\\phishing_class_-1_edu_20240425023347.csv'
     ]
 
 	
