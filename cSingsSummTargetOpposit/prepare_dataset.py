@@ -322,6 +322,14 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     # Сохранение результата в новый файл с меткой времени
     output_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}.csv"
     df.to_csv(os.path.join(output_folder, output_file_name), index=False)
+
+    # Сохранение знаков в новый файл с меткой времени Определение колонок для преобразования (все кроме двух последних)
+    columns_to_transform_into_signs  = df.columns[:-2]
+    df_signs =  df
+    df_signs[columns_to_transform_into_signs] = df_signs[columns_to_transform_into_signs].applymap(lambda x: 1 if x >= 0 else 0)
+    output_file_sign_name = f"{os.path.splitext(file_name)[0]}_signs_{timestamp}.csv"
+    df_signs.to_csv(os.path.join(output_folder, output_file_sign_name), index=False)
+
     
     # Сохранение отдельных файлов по классу с разбиением на части
     grouped_df = df.groupby(class_column)
