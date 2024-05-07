@@ -231,7 +231,7 @@ def calculate_columns(df, class_column, ignored_columns, columns_data, significa
     for column in df.columns:
         if column not in columns_to_exclude:
             # Замена inf и -inf на NaN и удаление строк с NaN
-            df[column].replace([np.inf, -np.inf], np.nan, inplace=True)
+            df[column] = df[column].replace([np.inf, -np.inf], np.nan)
             df.dropna(subset=[column], inplace=True)
 
             # Если задано макс. количество значащих цифр, округляем
@@ -326,7 +326,8 @@ def save_and_rearrange_df(df, output_folder, file_name, class_column, max_rows_p
     # Сохранение знаков в новый файл с меткой времени Определение колонок для преобразования (все кроме двух последних)
     columns_to_transform_into_signs  = df.columns[:-2]
     df_signs =  df
-    df_signs[columns_to_transform_into_signs] = df_signs[columns_to_transform_into_signs].applymap(lambda x: 1 if x >= 0 else 0)
+    for column in columns_to_transform_into_signs:
+        df_signs[column] = df_signs[column].map(lambda x: 1 if x >= 0 else 0)
     output_file_sign_name = f"{os.path.splitext(file_name)[0]}_signs_{timestamp}.csv"
     df_signs.to_csv(os.path.join(output_folder, output_file_sign_name), index=False)
 
