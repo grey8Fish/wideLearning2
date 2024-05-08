@@ -147,32 +147,32 @@ class wideLearningSerialLayer:
 			yy += 1
 			
 	#Определить целевую и противоположную категории
-	#def getMinMaxScalarMul_numpy(self):
-	#	min_value = np.inf
-	#	max_value = -np.inf
-	#	op_min_class = None
-	#	ta_max_class = None
-	#
-	#	for class_index in range(self.countClasses):
-	#		class_data = self.inputsClassTraining[class_index, :self.countInstancesEachClassTraining[class_index], self.sizeVector+1]
-	#		if class_data.size == 0:
-	#			continue
-	#
-	#		local_min = np.min(class_data)
-	#		local_max = np.max(class_data)
-	#
-	#		if local_min < min_value:
-	#			min_value = local_min
-	#			op_min_class = class_index
-	#
-	#		if local_max > max_value:
-	#			max_value = local_max
-	#			ta_max_class = class_index
-	#
-	#	return op_min_class, ta_max_class
+	def getMinMaxScalarMul(self):
+		min_value = np.inf
+		max_value = -np.inf
+		op_min_class = None
+		ta_max_class = None
+	
+		for class_index in range(self.countClasses):
+			class_data = self.inputsClassTraining[class_index, :self.countInstancesEachClassTraining[class_index], self.sizeVector+1]
+			if class_data.size == 0:
+				continue
+	
+			local_min = np.min(class_data)
+			local_max = np.max(class_data)
+	
+			if local_min < min_value:
+				min_value = local_min
+				op_min_class = class_index
+	
+			if local_max > max_value:
+				max_value = local_max
+				ta_max_class = class_index
+	
+		return op_min_class, ta_max_class
 		
 	#Определить целевую и противоположную категории - старая версия
-	def getMinMaxScalarMul(self):
+	def getMinMaxScalarMul_old(self):
 		yy = 0
 		while yy < self.countClasses:
 			if self.countInstancesEachClassTraining[yy] == 0:
@@ -674,15 +674,9 @@ def main(file_names):
 
 if __name__ == "__main__":
 	file_names = [
-#		'output\\dataset_kahraman_20240502192205\\kahraman_class_High_edu_20240502192205.csv',
-#		'output\\dataset_kahraman_20240502192205\\kahraman_class_Low_edu_20240502192205.csv',
-#		'output\\dataset_kahraman_20240502192205\\kahraman_class_Middle_edu_20240502192205.csv',
-#		'output\\dataset_kahraman_20240502192205\\kahraman_class_very_low_edu_20240502192205.csv'    
-		'output\\dataset_forest_20240503171228\\forest_class_d _edu_20240503171229.csv',
-		'output\\dataset_forest_20240503171228\\forest_class_h _edu_20240503171229.csv',
-		'output\\dataset_forest_20240503171228\\forest_class_o _edu_20240503171229.csv',
-		'output\\dataset_forest_20240503171228\\forest_class_s _edu_20240503171229.csv'
-		]
+        'outputApple400\\apple_quality_class_0_edu_20240418154718.csv',
+        'outputApple400\\apple_quality_class_1_edu_20240418154718.csv'
+    ]
 
 	
 	profiler = cProfile.Profile()
