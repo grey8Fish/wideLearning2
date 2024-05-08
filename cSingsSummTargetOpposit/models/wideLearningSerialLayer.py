@@ -526,27 +526,28 @@ def main(file_names):
 				while ww < wlsl.countInstancesEachClassTraining[qq]:
 					ee = 0
 					while ee < wlsl.sizeVector:#первоначальное приближение вектора весов 
-						wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee] // 2
+						wlsl.currentWeightsInit[ee] = wlsl.inputsClassTraining[qq][ww][ee]  // 2
+						ee += 1
 						#Инициализировать столбец «значение скалярного произведения»
-						wlsl.initColScalarMul(wlsl.currentWeightsInit)
+					wlsl.initColScalarMul(wlsl.currentWeightsInit)
 						#Определить целевую и противоположную категории
-						mm = wlsl.getMinMaxScalarMul()
-						opCat = int(mm[0])
-						taCat = int(mm[1])
+					mm = wlsl.getMinMaxScalarMul()
+					opCat = int(mm[0])
+					taCat = int(mm[1])
 						#Определить максимальное значение скалярного произведения в НЕ целевых категориях
-						noTargMax = wlsl.calcNoTarMax(taCat)
+					noTargMax = wlsl.calcNoTarMax(taCat)
 						#print(noTargMax)
 						#Определить количество отсечённых экземпляров в целевой категории
-						countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
+					countCutOffTarget = wlsl.calcCutOffSignTarget(taCat, noTargMax)
 						#Определить минимальное значение скалярного произведения в НЕ противоположных категориях
-						noOppoMin = wlsl.calcNoOppMin(opCat)
+					noOppoMin = wlsl.calcNoOppMin(opCat)
 						#print(noOppoMin)
 						#Определить количество отсечённых экземпляров в противоположной категории
-						countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
-						countCutOffCurrent = countCutOffTarget + countCufOffOpposit
-						if countCutOffPrev < countCutOffCurrent:
-							countCutOffPrev = countCutOffCurrent
-							wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
+					countCufOffOpposit = wlsl.calcCutOffSignOpposit(opCat, noOppoMin)
+					countCutOffCurrent = countCutOffTarget + countCufOffOpposit
+					if countCutOffPrev < countCutOffCurrent:
+						countCutOffPrev = countCutOffCurrent
+						wlsl.previousWeightsInit = wlsl.currentWeightsInit.copy()
 							#countCutOffRight = countCutOffTarget
 							#categoryRight = taCat
 							#print(noTargMax)
@@ -554,10 +555,10 @@ def main(file_names):
 							#countCufOffLeft = countCufOffOpposit
 							#categoryLeft = opCat
 							#minNoLeft = noOppoMin
-							wlsl.gradientDescentScanning(opCat, noOppoMin, taCat, noTargMax, countCufOffOpposit, countCutOffTarget)
+						wlsl.gradientDescentScanning(opCat, noOppoMin, taCat, noTargMax, countCufOffOpposit, countCutOffTarget)
 		#					rr += 1
 							#ff += 1
-						ee += 1
+						#ee += 1
 					#print(ww)
 					ww += 1
 				qq += 1
@@ -673,9 +674,15 @@ def main(file_names):
 
 if __name__ == "__main__":
 	file_names = [
-        'outputApple400\\apple_quality_class_0_edu_20240418154718.csv',
-        'outputApple400\\apple_quality_class_1_edu_20240418154718.csv'
-    ]
+#		'output\\dataset_kahraman_20240502192205\\kahraman_class_High_edu_20240502192205.csv',
+#		'output\\dataset_kahraman_20240502192205\\kahraman_class_Low_edu_20240502192205.csv',
+#		'output\\dataset_kahraman_20240502192205\\kahraman_class_Middle_edu_20240502192205.csv',
+#		'output\\dataset_kahraman_20240502192205\\kahraman_class_very_low_edu_20240502192205.csv'    
+		'output\\dataset_forest_20240503171228\\forest_class_d _edu_20240503171229.csv',
+		'output\\dataset_forest_20240503171228\\forest_class_h _edu_20240503171229.csv',
+		'output\\dataset_forest_20240503171228\\forest_class_o _edu_20240503171229.csv',
+		'output\\dataset_forest_20240503171228\\forest_class_s _edu_20240503171229.csv'
+		]
 
 	
 	profiler = cProfile.Profile()
